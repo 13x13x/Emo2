@@ -17,8 +17,8 @@ BOT_TOKEN = "7460682763:AAF4bGSKPI4wrVHsuak6dIqFQ6hQTlEP5EE"  # Replace with you
 
 app = Client("my_bot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
 
-# Your Netlify site URL for download
-NETLIFY_URL = "https://pifoffcl.netlify.app/downloads"  # Update this with your actual download URL path
+# Ensure this URL points to your Netlify deployment
+NETLIFY_URL = "https://pifoffcl.netlify.app/downloads"
 
 @app.on_message(filters.document & filters.private)
 async def store_file(client, message: Message):
@@ -54,19 +54,11 @@ async def download_file(client, message: Message):
     
     # Provide high-speed download link using Netlify
     file_name = file_data['file_name']
-    file_path = file_name  # Use the file name as the path to generate the download link
-    high_speed_link = f"{NETLIFY_URL}/{file_path}"  # Generate link based on Netlify URL
+    high_speed_link = f"{NETLIFY_URL}/{file_name}"  # Generate link based on Netlify URL
     
     await message.reply_text(f"**File:** {file_name}\n"
                              f"**Download Link:** [High-speed link]({high_speed_link})",
                              disable_web_page_preview=True)
-
-@app.on_message(filters.command("start") & filters.private)
-async def start_command(client, message: Message):
-    await message.reply_text("Bot started and ready to receive commands.")
-
-# Log a message when the bot starts
-print("Bot started successfully.")
 
 nest_asyncio.apply()  # Apply nest_asyncio patch
 app.run()
