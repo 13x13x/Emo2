@@ -23,10 +23,14 @@ flask_app = Flask(__name__)
 @app.on_message(filters.document)
 async def handle_document(client, message):
     file_id = message.document.file_id
-    new_file = await client.get_file(file_id)  # Await the result of get_file()
+
+    # Correctly handle the get_file call
+    async for new_file in client.get_file(file_id):
+        # Access the new_file properties here
+        file_url = new_file.file_url
+        break  # We only need the first item
 
     # Save file info to MongoDB
-    file_url = new_file.file_url
     expiry_time = datetime.utcnow() + timedelta(minutes=10)  # Set expiry to 10 minutes
     collection.insert_one({'file_id': file_id, 'file_url': file_url, 'expiry_time': expiry_time})
 
@@ -58,7 +62,7 @@ def download_file(file_id):
     return abort(404, description="File not found")
 
 def run_flask():
-    flask_app.run(host='0.0.0.0', port=80)  # Start the Flask app
+    flask_app.run(host='0.0.0.0', port=80)  # Start the Flask app on port 80
 
 if __name__ == "__main__":
     # Start the Flask app in a separate thread
