@@ -3,6 +3,7 @@ from pyrogram.types import Message
 from pymongo import MongoClient
 from bson import ObjectId
 import nest_asyncio
+import urllib.parse  # Import urllib to handle URL encoding
 
 # MongoDB Configuration
 MONGO_URI = "mongodb+srv://shopngodeals:ultraamz@cluster0.wn2wr.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
@@ -20,16 +21,25 @@ app = Client("my_bot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
 # Ensure this URL points to your Netlify deployment
 NETLIFY_URL = "https://pifoffcl.netlify.app/downloads"
 
+def sanitize_filename(filename):
+    """Replace spaces and special characters with underscores and encode the filename for URL safety."""
+    # Replace spaces with underscores and URL encode the filename
+    filename = filename.replace(' ', '_')
+    return urllib.parse.quote(filename)
+
 @app.on_message(filters.document & filters.private)
 async def store_file(client, message: Message):
     # Store document details in MongoDB
     file_id = message.document.file_id
     file_name = message.document.file_name
     file_size = message.document.file_size
+    
+    # Sanitize the filename before storing
+    sanitized_name = sanitize_filename(file_name)
+    
     file_data = {
         "file_id": file_id,
-        "file_name": file_name,
-        "file_size": file_size
+        "file_name": sanitized_name  # Store the sanitized filename
     }
     inserted_file = collection.insert_one(file_data)
     file_db_id = str(inserted_file.inserted_id)
@@ -54,7 +64,7 @@ async def download_file(client, message: Message):
     
     # Provide high-speed download link using Netlify
     file_name = file_data['file_name']
-    high_speed_link = f"{NETLIFY_URL}/{file_name}"  # Generate link based on Netlify URL
+    high_speed_link = f"{NETLIFY_URL}/{file_name}"  # Generate link based on sanitized filename
     
     # Print message to console for debugging
     print(f"Generating download link for file: {file_name} -> {high_speed_link}")
