@@ -2,7 +2,7 @@ from pyrogram import Client, filters
 from pyrogram.types import Message
 from pymongo import MongoClient
 from bson import ObjectId
-import nest_asyncio
+import nest_asyncio  # Import nest_asyncio
 
 # MongoDB Configuration
 MONGO_URI = "mongodb+srv://shopngodeals:ultraamz@cluster0.wn2wr.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
@@ -30,11 +30,10 @@ async def store_file(client, message: Message):
         "file_name": file_name,
         "file_size": file_size
     }
-    # Insert file details into MongoDB asynchronously
-    await client.loop.run_in_executor(None, collection.insert_one, file_data)
+    inserted_file = collection.insert_one(file_data)
+    file_db_id = str(inserted_file.inserted_id)
     
-    # Respond with download command immediately
-    file_db_id = str(file_data['_id'])  # Use the file data to retrieve the ID
+    # Respond with download command
     await message.reply_text(f"File stored successfully. Retrieve it with:\n"
                              f"`/download {file_db_id}`")
 
@@ -46,7 +45,7 @@ async def download_file(client, message: Message):
         return
     
     file_db_id = message.command[1]
-    file_data = await client.loop.run_in_executor(None, collection.find_one, {"_id": ObjectId(file_db_id)})
+    file_data = collection.find_one({"_id": ObjectId(file_db_id)})
     
     if not file_data:
         await message.reply_text("File not found in the database.")
@@ -54,13 +53,19 @@ async def download_file(client, message: Message):
     
     # Provide high-speed download link using Netlify
     file_name = file_data['file_name']
-    high_speed_link = f"{NETLIFY_URL}/{file_name}"  # Generate link based on Netlify URL
+    file_path = f"downloads/{file_name}"  # Ensure this path matches where files are hosted
+    high_speed_link = f"{NETLIFY_URL}/{file_path}"  # Generate link based on Netlify URL
     
     await message.reply_text(f"**File:** {file_name}\n"
                              f"**Download Link:** [High-speed link]({high_speed_link})",
                              disable_web_page_preview=True)
 
-# Start the bot
-if __name__ == "__main__":
-    app.run()
-    print("Bot started successfully and is ready to receive commands.")
+@app.on_message(filters.command("start") & filters.private)
+async def start_command(client, message: Message):
+    await message.reply_text("Bot started and ready to receive commands.")
+
+# Log a message when the bot starts
+print("Bot started successfully.")
+
+nest_asyncio.apply()  # Apply nest_asyncio patch
+app.run()
