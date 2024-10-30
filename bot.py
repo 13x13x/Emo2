@@ -44,12 +44,12 @@ def download_file(file_id):
     document = collection.find_one({'file_id': file_id})
     if document:
         file_url = document['file_url']
-        # Download the file from the file_url and return it
+        # Since file_url might not be a direct file path, handle it accordingly
         return send_file(file_url)  # Adjust this based on how you want to serve the file
     return abort(404, description="File not found")
 
 if __name__ == "__main__":
     # Start the Telegram bot
-    app.run()
+    app.run()  # Start the bot
     # Start the Flask app
-    flask_app.run(host='0.0.0.0', port=5000)
+    # flask_app.run(host='0.0.0.0', port=5000)  # Uncomment if you want to run Flask separately
