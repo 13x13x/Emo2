@@ -2,7 +2,7 @@ from pyrogram import Client, filters
 from pymongo import MongoClient
 from flask import Flask, jsonify, abort
 from datetime import datetime, timedelta
-import asyncio
+import threading
 
 # MongoDB setup
 MONGO_URI = "mongodb+srv://shopngodeals:ultraamz@cluster0.wn2wr.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
@@ -57,7 +57,12 @@ def download_file(file_id):
             return abort(404, description="File link has expired")
     return abort(404, description="File not found")
 
-if __name__ == "__main__":
-    loop = asyncio.get_event_loop()
-    loop.create_task(app.start())
+def run_flask():
     flask_app.run(host='0.0.0.0', port=5000)  # Start the Flask app
+
+if __name__ == "__main__":
+    # Start the Flask app in a separate thread
+    threading.Thread(target=run_flask).start()
+    
+    # Start the Telegram bot
+    app.run()
