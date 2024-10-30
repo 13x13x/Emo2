@@ -1,9 +1,13 @@
+import logging
 from pyrogram import Client, filters
 from pyrogram.types import Message
 from pymongo import MongoClient
 from bson import ObjectId
-import nest_asyncio  # Import nest_asyncio
+import nest_asyncio
 
+# Set up logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # MongoDB Configuration
 MONGO_URI = "mongodb+srv://shopngodeals:ultraamz@cluster0.wn2wr.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
@@ -20,8 +24,14 @@ app = Client("my_bot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
 
 NETLIFY_URL = "https://pifoffcl.netlify.app/downloads"  # Your Netlify download URL
 
+# Print a message when the bot starts
+@app.on_message(filters.private)
+async def start(client, message: Message):
+    await message.reply_text("Bot started and ready to receive commands.")
+
 @app.on_message(filters.document & filters.private)
 async def store_file(client, message: Message):
+    logger.info("Received a document message.")
     # Store document details in MongoDB
     file_id = message.document.file_id
     file_name = message.document.file_name
@@ -40,6 +50,7 @@ async def store_file(client, message: Message):
 
 @app.on_message(filters.command("download") & filters.private)
 async def download_file(client, message: Message):
+    logger.info("Received a download command.")
     # Retrieve file ID from MongoDB
     if len(message.command) < 2:
         await message.reply_text("Please provide a valid file ID, e.g., `/download <file_id>`.")
@@ -60,5 +71,11 @@ async def download_file(client, message: Message):
                              f"**Download Link:** [High-speed link]({high_speed_link})",
                              disable_web_page_preview=True)
 
-nest_asyncio.apply() # Apply nest_asyncio patch
+# Apply nest_asyncio patch
+nest_asyncio.apply()
+
+# Print a message to indicate the bot has started
+logger.info("Bot started successfully.")
+print("Bot started successfully.")
+
 app.run()
