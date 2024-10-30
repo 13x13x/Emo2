@@ -23,12 +23,12 @@ flask_app = Flask(__name__)
 @app.on_message(filters.document)
 async def handle_document(client, message):
     file_id = message.document.file_id
+    
+    # Directly get the file details using get_file
+    new_file = await client.get_file(file_id)  # Await the get_file call
 
-    # Correctly handle the get_file call
-    async for new_file in client.get_file(file_id):
-        # Access the new_file properties here
-        file_url = new_file.file_url
-        break  # We only need the first item
+    # Access the file_url from the new_file object
+    file_url = new_file.file_url
 
     # Save file info to MongoDB
     expiry_time = datetime.utcnow() + timedelta(minutes=10)  # Set expiry to 10 minutes
