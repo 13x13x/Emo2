@@ -2,7 +2,7 @@ from pyrogram import Client, filters
 from pyrogram.types import Message
 from pymongo import MongoClient
 from bson import ObjectId
-import nest_asyncio  # Import nest_asyncio
+import nest_asyncio
 
 # MongoDB Configuration
 MONGO_URI = "mongodb+srv://shopngodeals:ultraamz@cluster0.wn2wr.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
@@ -17,7 +17,8 @@ BOT_TOKEN = "7460682763:AAF4bGSKPI4wrVHsuak6dIqFQ6hQTlEP5EE"  # Replace with you
 
 app = Client("my_bot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
 
-NETLIFY_URL = "https://pifoffcl.netlify.app/downloads"  # Your Netlify download URL
+# Your Netlify site URL for download
+NETLIFY_URL = "https://pifoffcl.netlify.app/downloads"  # Update this with your actual download URL path
 
 @app.on_message(filters.document & filters.private)
 async def store_file(client, message: Message):
@@ -53,7 +54,7 @@ async def download_file(client, message: Message):
     
     # Provide high-speed download link using Netlify
     file_name = file_data['file_name']
-    file_path = f"downloads/{file_name}"  # Ensure this path matches where files are hosted
+    file_path = file_name  # Use the file name as the path to generate the download link
     high_speed_link = f"{NETLIFY_URL}/{file_path}"  # Generate link based on Netlify URL
     
     await message.reply_text(f"**File:** {file_name}\n"
