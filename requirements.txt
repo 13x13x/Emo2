@@ -2,4 +2,4 @@ pyrofork
 pyrogram
 tgcrypto
 pymongo
-nest_asyncio
+nest-asyncio
