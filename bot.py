@@ -13,7 +13,7 @@ collection = db['files']  # Change to your desired collection name
 # Telegram bot configuration
 api_id = 24972774  # Your API ID
 api_hash = '188f227d40cdbfaa724f1f3cd059fd8b'  # Your API Hash
-bot_token = '7425634528:AAFGaQ1xb2ofq7qSfYNyys-VPGWSP5m5BnY'  # Your Bot Token
+bot_token = '7460682763:AAF4bGSKPI4wrVHsuak6dIqFQ6hQTlEP5EE'  # Your Bot Token
 
 app = Client("my_bot", api_id=api_id, api_hash=api_hash, bot_token=bot_token)
 
