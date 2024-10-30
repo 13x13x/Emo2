@@ -1,7 +1,6 @@
 from pyrogram import Client, filters
 from pymongo import MongoClient
 from flask import Flask, send_file, abort
-import os
 
 # MongoDB setup
 MONGO_URI = "mongodb+srv://shopngodeals:ultraamz@cluster0.wn2wr.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
@@ -20,9 +19,9 @@ app = Client("my_bot", api_id=api_id, api_hash=api_hash, bot_token=bot_token)
 flask_app = Flask(__name__)
 
 @app.on_message(filters.document)
-def handle_document(client, message):
+async def handle_document(client, message):
     file_id = message.document.file_id
-    new_file = client.get_file(file_id)
+    new_file = await client.get_file(file_id)  # Await the result of get_file()
 
     # Save file info to MongoDB
     file_url = new_file.file_url
@@ -30,15 +29,15 @@ def handle_document(client, message):
 
     # Send response with download URL
     download_url = f"http://pifbots.online/download/{file_id}"
-    message.reply(f"File saved! Download URL: {download_url}")
+    await message.reply(f"File saved! Download URL: {download_url}")
 
 @app.on_message(filters.command("start"))
-def start(client, message):
-    message.reply("Welcome! Send me a document, and I'll save it for you.")
+async def start(client, message):
+    await message.reply("Welcome! Send me a document, and I'll save it for you.")
 
 @app.on_message(filters.command("help"))
-def help(client, message):
-    message.reply("Send me a document, and I'll save it to my database!")
+async def help(client, message):
+    await message.reply("Send me a document, and I'll save it to my database!")
 
 @flask_app.route('/download/<file_id>')
 def download_file(file_id):
