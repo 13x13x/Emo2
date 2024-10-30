@@ -1,13 +1,8 @@
-import logging
 from pyrogram import Client, filters
 from pyrogram.types import Message
 from pymongo import MongoClient
 from bson import ObjectId
 import nest_asyncio
-
-# Set up logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
 
 # MongoDB Configuration
 MONGO_URI = "mongodb+srv://shopngodeals:ultraamz@cluster0.wn2wr.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
@@ -24,14 +19,8 @@ app = Client("my_bot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
 
 NETLIFY_URL = "https://pifoffcl.netlify.app/downloads"  # Your Netlify download URL
 
-# Print a message when the bot starts
-@app.on_message(filters.private)
-async def start(client, message: Message):
-    await message.reply_text("Bot started and ready to receive commands.")
-
 @app.on_message(filters.document & filters.private)
 async def store_file(client, message: Message):
-    logger.info("Received a document message.")
     # Store document details in MongoDB
     file_id = message.document.file_id
     file_name = message.document.file_name
@@ -41,23 +30,23 @@ async def store_file(client, message: Message):
         "file_name": file_name,
         "file_size": file_size
     }
-    inserted_file = collection.insert_one(file_data)
-    file_db_id = str(inserted_file.inserted_id)
+    # Insert file details into MongoDB asynchronously
+    await client.loop.run_in_executor(None, collection.insert_one, file_data)
     
-    # Respond with download command
+    # Respond with download command immediately
+    file_db_id = str(file_data['_id'])  # Use the file data to retrieve the ID
     await message.reply_text(f"File stored successfully. Retrieve it with:\n"
                              f"`/download {file_db_id}`")
 
 @app.on_message(filters.command("download") & filters.private)
 async def download_file(client, message: Message):
-    logger.info("Received a download command.")
     # Retrieve file ID from MongoDB
     if len(message.command) < 2:
         await message.reply_text("Please provide a valid file ID, e.g., `/download <file_id>`.")
         return
     
     file_db_id = message.command[1]
-    file_data = collection.find_one({"_id": ObjectId(file_db_id)})
+    file_data = await client.loop.run_in_executor(None, collection.find_one, {"_id": ObjectId(file_db_id)})
     
     if not file_data:
         await message.reply_text("File not found in the database.")
@@ -71,11 +60,9 @@ async def download_file(client, message: Message):
                              f"**Download Link:** [High-speed link]({high_speed_link})",
                              disable_web_page_preview=True)
 
-# Apply nest_asyncio patch
-nest_asyncio.apply()
+@app.on_ready
+async def on_ready():
+    print("Bot started successfully and is ready to receive commands.")
 
-# Print a message to indicate the bot has started
-logger.info("Bot started successfully.")
-print("Bot started successfully.")
-
+nest_asyncio.apply()  # Apply nest_asyncio patch
 app.run()
