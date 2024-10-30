@@ -16,7 +16,7 @@ collection = db['la_db']  # Replace with your desired collection name
 # Telegram bot configuration
 api_id = 24972774  # Your API ID
 api_hash = '188f227d40cdbfaa724f1f3cd059fd8b'  # Your API Hash
-bot_token = '7904938522:AAGQHW5RJ1t_3Bw3sXlg_sSr_Md2Mb4el6U'  # Your Bot Token
+bot_token = '7425634528:AAFGaQ1xb2ofq7qSfYNyys-VPGWSP5m5BnY'  # Your Bot Token
 
 app = Client("my_bot", api_id=api_id, api_hash=api_hash, bot_token=bot_token)
 
