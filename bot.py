@@ -2,7 +2,7 @@ from pyrogram import Client, filters
 from pymongo import MongoClient
 from flask import Flask, jsonify, abort
 from datetime import datetime, timedelta
-import os
+import asyncio
 
 # MongoDB setup
 MONGO_URI = "mongodb+srv://shopngodeals:ultraamz@cluster0.wn2wr.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
@@ -23,16 +23,16 @@ flask_app = Flask(__name__)
 @app.on_message(filters.document)
 async def handle_document(client, message):
     file_id = message.document.file_id
-    new_file = await client.get_file(file_id)  # Await the result of get_file()
+    async for new_file in client.get_file(file_id):  # Correctly await the generator
+        # Save file info to MongoDB
+        file_url = new_file.file_url
+        expiry_time = datetime.utcnow() + timedelta(minutes=10)  # Set expiry to 10 minutes
+        collection.insert_one({'file_id': file_id, 'file_url': file_url, 'expiry_time': expiry_time})
 
-    # Save file info to MongoDB
-    file_url = new_file.file_url
-    expiry_time = datetime.utcnow() + timedelta(minutes=10)  # Set expiry to 10 minutes
-    collection.insert_one({'file_id': file_id, 'file_url': file_url, 'expiry_time': expiry_time})
-
-    # Send response with download URL
-    download_url = f"http://pifbots.online/download/{file_id}"
-    await message.reply(f"File saved! Download URL: {download_url}. This link will expire in 10 minutes.")
+        # Send response with download URL
+        download_url = f"http://pifbots.online/download/{file_id}"
+        await message.reply(f"File saved! Download URL: {download_url}. This link will expire in 10 minutes.")
+        break  # Exit the loop after processing
 
 @app.on_message(filters.command("start"))
 async def start(client, message):
@@ -58,7 +58,6 @@ def download_file(file_id):
     return abort(404, description="File not found")
 
 if __name__ == "__main__":
-    # Start the Telegram bot
-    app.run()  # Start the bot
-    # Optionally start the Flask app in a different thread if needed
-    # flask_app.run(host='0.0.0.0', port=5000)  # Uncomment if you want to run Flask separately
+    loop = asyncio.get_event_loop()
+    loop.create_task(app.start())
+    flask_app.run(host='0.0.0.0', port=5000)  # Start the Flask app
