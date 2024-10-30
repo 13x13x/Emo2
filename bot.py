@@ -3,7 +3,7 @@ from pyrogram.types import Message
 from pymongo import MongoClient
 from bson import ObjectId
 import nest_asyncio
-import urllib.parse  # Import urllib to handle URL encoding
+import urllib.parse
 
 # MongoDB Configuration
 MONGO_URI = "mongodb+srv://shopngodeals:ultraamz@cluster0.wn2wr.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
@@ -23,8 +23,7 @@ NETLIFY_URL = "https://pifoffcl.netlify.app/downloads"
 
 def sanitize_filename(filename):
     """Replace spaces and special characters with underscores and encode the filename for URL safety."""
-    # Replace spaces with underscores and URL encode the filename
-    filename = filename.replace(' ', '_')
+    filename = filename.replace(' ', '_').replace('@', '%40')
     return urllib.parse.quote(filename)
 
 @app.on_message(filters.document & filters.private)
@@ -69,6 +68,7 @@ async def download_file(client, message: Message):
     # Print message to console for debugging
     print(f"Generating download link for file: {file_name} -> {high_speed_link}")
     
+    # Check if the generated link is valid
     await message.reply_text(f"**File:** {file_name}\n"
                              f"**Download Link:** [High-speed link]({high_speed_link})",
                              disable_web_page_preview=True)
