@@ -56,6 +56,9 @@ async def download_file(client, message: Message):
     file_name = file_data['file_name']
     high_speed_link = f"{NETLIFY_URL}/{file_name}"  # Generate link based on Netlify URL
     
+    # Print message to console for debugging
+    print(f"Generating download link for file: {file_name} -> {high_speed_link}")
+    
     await message.reply_text(f"**File:** {file_name}\n"
                              f"**Download Link:** [High-speed link]({high_speed_link})",
                              disable_web_page_preview=True)
