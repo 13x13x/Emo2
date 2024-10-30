@@ -60,9 +60,7 @@ async def download_file(client, message: Message):
                              f"**Download Link:** [High-speed link]({high_speed_link})",
                              disable_web_page_preview=True)
 
-@app.on_ready
-async def on_ready():
+# Start the bot
+if __name__ == "__main__":
+    app.run()
     print("Bot started successfully and is ready to receive commands.")
-
-nest_asyncio.apply()  # Apply nest_asyncio patch
-app.run()
