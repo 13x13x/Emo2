@@ -1,11 +1,7 @@
 from pyrogram import Client, filters
 from pymongo import MongoClient
-import requests
-from pyrogram import errors
-import requests
-
-from pymongo import MongoClient
-from pymongo.errors import ServerSelectionTimeoutError
+from flask import Flask, send_file, abort
+import os
 
 # MongoDB setup
 MONGO_URI = "mongodb+srv://shopngodeals:ultraamz@cluster0.wn2wr.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
@@ -19,6 +15,9 @@ api_hash = '188f227d40cdbfaa724f1f3cd059fd8b'  # Your API Hash
 bot_token = '7425634528:AAFGaQ1xb2ofq7qSfYNyys-VPGWSP5m5BnY'  # Your Bot Token
 
 app = Client("my_bot", api_id=api_id, api_hash=api_hash, bot_token=bot_token)
+
+# Flask app setup
+flask_app = Flask(__name__)
 
 @app.on_message(filters.document)
 def handle_document(client, message):
@@ -41,13 +40,17 @@ def start(client, message):
 def help(client, message):
     message.reply("Send me a document, and I'll save it to my database!")
 
-@app.route('/download/<file_id>')
+@flask_app.route('/download/<file_id>')
 def download_file(file_id):
     document = collection.find_one({'file_id': file_id})
     if document:
         file_url = document['file_url']
-        return f"<a href='{file_url}'>Click here to download the file</a>"
-    return "File not found!", 404
+        # Download the file from the file_url and return it
+        return send_file(file_url)  # Adjust this based on how you want to serve the file
+    return abort(404, description="File not found")
 
 if __name__ == "__main__":
+    # Start the Telegram bot
     app.run()
+    # Start the Flask app
+    flask_app.run(host='0.0.0.0', port=5000)
