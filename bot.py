@@ -58,7 +58,7 @@ def download_file(file_id):
     return abort(404, description="File not found")
 
 def run_flask():
-    flask_app.run(host='0.0.0.0', port=5000)  # Start the Flask app
+    flask_app.run(host='0.0.0.0', port=80)  # Start the Flask app
 
 if __name__ == "__main__":
     # Start the Flask app in a separate thread
