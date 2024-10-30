@@ -23,16 +23,16 @@ flask_app = Flask(__name__)
 @app.on_message(filters.document)
 async def handle_document(client, message):
     file_id = message.document.file_id
-    async for new_file in client.get_file(file_id):  # Correctly await the generator
-        # Save file info to MongoDB
-        file_url = new_file.file_url
-        expiry_time = datetime.utcnow() + timedelta(minutes=10)  # Set expiry to 10 minutes
-        collection.insert_one({'file_id': file_id, 'file_url': file_url, 'expiry_time': expiry_time})
+    new_file = await client.get_file(file_id)  # Await the result of get_file()
 
-        # Send response with download URL
-        download_url = f"http://pifbots.online/download/{file_id}"
-        await message.reply(f"File saved! Download URL: {download_url}. This link will expire in 10 minutes.")
-        break  # Exit the loop after processing
+    # Save file info to MongoDB
+    file_url = new_file.file_url
+    expiry_time = datetime.utcnow() + timedelta(minutes=10)  # Set expiry to 10 minutes
+    collection.insert_one({'file_id': file_id, 'file_url': file_url, 'expiry_time': expiry_time})
+
+    # Send response with download URL
+    download_url = f"http://pifbots.online/download/{file_id}"
+    await message.reply(f"File saved! Download URL: {download_url}. This link will expire in 10 minutes.")
 
 @app.on_message(filters.command("start"))
 async def start(client, message):
@@ -58,7 +58,7 @@ def download_file(file_id):
     return abort(404, description="File not found")
 
 def run_flask():
-    flask_app.run(host='0.0.0.0', port=80)  # Start the Flask app
+    flask_app.run(host='0.0.0.0', port=8080)  # Start the Flask app
 
 if __name__ == "__main__":
     # Start the Flask app in a separate thread
