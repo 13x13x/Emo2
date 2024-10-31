@@ -1,5 +1,4 @@
-pyrofork
-pyrogram
-tgcrypto
-pymongo
-nest-asyncio
+pyrogram==2.0.106
+pymongo[srv]
+aria2p
+libtorrent
