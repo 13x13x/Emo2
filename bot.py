@@ -12,7 +12,7 @@ SEEDR_PASSWORD = os.getenv("SEEDR_PASSWORD", "saahus123")
 
 # Set your Telegram API credentials
 API_ID = os.getenv("API_ID", "24972774")  # Replace with your API ID
-API_HASH = os.getenv("API_HASH", "188f227d40cdbfaa724f1f3cd059fd8b)  # Replace with your API Hash
+API_HASH = os.getenv("API_HASH", "188f227d40cdbfaa724f1f3cd059fd8b")  
 
 # Initialize the Pyrogram Client
 bot = Client("my_bot", api_id=API_ID, api_hash=API_HASH, bot_token=os.getenv("7460682763:AAF4bGSKPI4wrVHsuak6dIqFQ6hQTlEP5EE"))
