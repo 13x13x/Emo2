@@ -1,6 +1,6 @@
 import os
 import asyncio
-from seedr import Seedr  # Importing the seedr library
+import requests  # Using requests instead of seedr
 from pyrogram import Client, filters
 from pyrogram.types import Message
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -34,6 +34,15 @@ async def get_user_info(user_id):
 async def delete_user_info(user_id):
     await db.users.delete_one({"user_id": user_id})
 
+# Function to handle Seedr API requests
+def seedr_request(method, endpoint, email=None, password=None, data=None):
+    url = f"https://www.seedr.cc/rest{endpoint}"
+    if method == "GET":
+        response = requests.get(url, auth=(email, password))
+    else:
+        response = requests.post(url, auth=(email, password), data=data)
+    return response
+
 @app.on_message(filters.command("start"))
 async def start_command(client: Client, message: Message):
     await message.reply("Welcome! Please log in using /login {email} {password}")
@@ -42,12 +51,15 @@ async def start_command(client: Client, message: Message):
 async def login_command(client: Client, message: Message):
     try:
         _, email, password = message.text.split(maxsplit=2)
-        seedr = Seedr(email=email, password=password)
         
-        if seedr.login():
+        # Test login by fetching user info
+        response = seedr_request("GET", "/user", email=email, password=password)
+        
+        if response.status_code == 200:
             await store_user_info(message.from_user.id, email, password)
-            total_storage = seedr.get_user_info()['total_storage']
-            used_storage = seedr.get_user_info()['used_storage']
+            user_info = response.json()
+            total_storage = user_info['total_storage']
+            used_storage = user_info['used_storage']
             await message.reply(f"Successful Login 💙\nTotal storage: {total_storage}\nUsed storage: {used_storage}")
         else:
             await message.reply("Invalid email or password.")
@@ -60,11 +72,12 @@ async def storage_command(client: Client, message: Message):
     if user_info:
         email = user_info["email"]
         password = user_info["password"]
-        seedr = Seedr(email=email, password=password)
+        response = seedr_request("GET", "/user", email=email, password=password)
 
-        if seedr.login():
-            total_storage = seedr.get_user_info()['total_storage']
-            used_storage = seedr.get_user_info()['used_storage']
+        if response.status_code == 200:
+            user_info = response.json()
+            total_storage = user_info['total_storage']
+            used_storage = user_info['used_storage']
             await message.reply(f"Storage:\nTotal storage: {total_storage}\nUsed storage: {used_storage}")
         else:
             await message.reply("Unable to fetch storage information. Please check your credentials.")
@@ -77,10 +90,10 @@ async def all_command(client: Client, message: Message):
     if user_info:
         email = user_info["email"]
         password = user_info["password"]
-        seedr = Seedr(email=email, password=password)
+        response = seedr_request("GET", "/torrents", email=email, password=password)
 
-        if seedr.login():
-            torrents = seedr.get_torrents()
+        if response.status_code == 200:
+            torrents = response.json()
             if torrents:
                 torrent_list = "\n".join([f"{torrent['name']} (Status: {torrent['status']})" for torrent in torrents])
                 await message.reply(f"Stored torrents for {email}:\n{torrent_list}")
@@ -97,16 +110,12 @@ async def delete_command(client: Client, message: Message):
     if user_info:
         email = user_info["email"]
         password = user_info["password"]
-        seedr = Seedr(email=email, password=password)
+        response = seedr_request("DELETE", "/torrents", email=email, password=password)
 
-        if seedr.login():
-            success = seedr.delete_all_torrents()
-            if success:
-                await message.reply("All torrents have been successfully deleted from your Seedr account.")
-            else:
-                await message.reply("Failed to delete torrents. Please check your credentials or try again later.")
+        if response.status_code == 200:
+            await message.reply("All torrents have been successfully deleted from your Seedr account.")
         else:
-            await message.reply("You are not logged in. Please log in first using /login.")
+            await message.reply("Failed to delete torrents. Please check your credentials or try again later.")
     else:
         await message.reply("You are not logged in. Please log in first using /login.")
 
@@ -129,32 +138,15 @@ async def download_command(client: Client, message: Message):
             return
 
         await message.reply("Adding your torrent... Please wait.")
-        seedr = Seedr(email=email, password=password)
+        
+        response = seedr_request("POST", "/transfer/magnet", email=email, password=password, data={"magnet": torrent_link})
 
-        if seedr.login():
-            used_storage = seedr.get_user_info()['used_storage']
-            total_storage = seedr.get_user_info()['total_storage']
-
-            if used_storage >= total_storage:
-                await message.reply("Error: Your storage is full. Please delete some torrents to add new ones.")
-                return
-            
-            torrent_response = seedr.add_torrent(torrent_link)
-
-            if torrent_response:
-                await message.reply("Torrent is being processed...")
-
-                # Simulate progress
-                for progress in range(0, 101, 10):
-                    await asyncio.sleep(0.5)
-                    await message.reply(f"Download Progress: {progress}%")
-                
-                download_link = torrent_response.get('download_link', 'N/A')
-                await message.reply(f"Download completed! Your download link: {download_link}")
-            else:
-                await message.reply("Failed to add the torrent. Please check the link or your credentials.")
+        if response.status_code == 200:
+            await message.reply("Torrent is being processed...")
+            download_link = response.json().get('download_link', 'N/A')
+            await message.reply(f"Download completed! Your download link: {download_link}")
         else:
-            await message.reply("Unable to fetch storage information. Please check your credentials.")
+            await message.reply("Failed to add the torrent. Please check the link or your credentials.")
     else:
         await message.reply("You are not logged in. Please log in first using /login.")
 
