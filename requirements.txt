@@ -1,5 +1,6 @@
 pyrogram
 aiohttp
+seedr
 tgcrypto
 requests
 motor
