@@ -65,6 +65,9 @@ async def delete_all_torrents(email, password):
                         if delete_response.status != 200:
                             print(f"Error deleting torrent: {delete_response.status} - {await delete_response.text()}")
                             return False
+                except Exception as e:
+                    print(f"Exception occurred while deleting torrent: {str(e)}")
+                    return False
             return True
     return False
 
