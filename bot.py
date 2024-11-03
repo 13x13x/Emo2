@@ -1,6 +1,6 @@
 import os
 import asyncio
-import requests
+import aiohttp  # Using aiohttp for async HTTP requests
 from pyrogram import Client, filters
 from pyrogram.types import Message
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -36,47 +36,47 @@ async def delete_user_info(user_id):
 
 # Fetch user storage information from Seedr
 async def fetch_user_storage(email, password):
-    try:
-        response = requests.get("https://api.seedr.cc/v2/user", auth=(email, password))
-        response.raise_for_status()
-        return response.json()
-    except requests.exceptions.RequestException as e:
-        print(f"Error fetching user storage: {e}")
-        return None
+    async with aiohttp.ClientSession() as session:
+        async with session.get("https://api.seedr.cc/v2/user", auth=aiohttp.BasicAuth(email, password)) as response:
+            if response.status == 200:
+                return await response.json()
+            else:
+                print(f"Error fetching user storage: {response.status} - {await response.text()}")
+                return None
 
 # Fetch all torrents from the user's Seedr account
 async def fetch_torrents(email, password):
-    try:
-        response = requests.get("https://api.seedr.cc/v2/torrents", auth=(email, password))
-        response.raise_for_status()
-        return response.json()
-    except requests.exceptions.RequestException as e:
-        print(f"Error fetching torrents: {e}")
-        return None
+    async with aiohttp.ClientSession() as session:
+        async with session.get("https://api.seedr.cc/v2/torrents", auth=aiohttp.BasicAuth(email, password)) as response:
+            if response.status == 200:
+                return await response.json()
+            else:
+                print(f"Error fetching torrents: {response.status} - {await response.text()}")
+                return None
 
 # Delete all torrents from the user's Seedr account
 async def delete_all_torrents(email, password):
     torrents = await fetch_torrents(email, password)
     if torrents:
-        for torrent in torrents:
-            try:
-                delete_response = requests.delete(f"https://api.seedr.cc/v2/torrents/{torrent['id']}", auth=(email, password))
-                delete_response.raise_for_status()
-            except requests.exceptions.RequestException as e:
-                print(f"Error deleting torrent: {e}")
-                return False
-        return True
+        async with aiohttp.ClientSession() as session:
+            for torrent in torrents.get('torrents', []):
+                try:
+                    async with session.delete(f"https://api.seedr.cc/v2/torrents/{torrent['id']}", auth=aiohttp.BasicAuth(email, password)) as delete_response:
+                        if delete_response.status != 200:
+                            print(f"Error deleting torrent: {delete_response.status} - {await delete_response.text()}")
+                            return False
+            return True
     return False
 
 # Add a new torrent to the user's Seedr account
 async def add_torrent(email, password, torrent_link):
-    try:
-        response = requests.post("https://api.seedr.cc/v2/torrents", auth=(email, password), json={"link": torrent_link})
-        response.raise_for_status()
-        return response.json()
-    except requests.exceptions.RequestException as e:
-        print(f"Error adding torrent: {e}")
-        return None
+    async with aiohttp.ClientSession() as session:
+        async with session.post("https://api.seedr.cc/v2/torrents", auth=aiohttp.BasicAuth(email, password), json={"link": torrent_link}) as response:
+            if response.status == 200:
+                return await response.json()
+            else:
+                print(f"Error adding torrent: {response.status} - {await response.text()}")
+                return None
 
 @app.on_message(filters.command("start"))
 async def start_command(client: Client, message: Message):
@@ -123,8 +123,8 @@ async def all_command(client: Client, message: Message):
         password = user_info["password"]
         torrents = await fetch_torrents(email, password)
         
-        if torrents:
-            torrent_list = "\n".join([f"{torrent['name']} (Status: {torrent['status']})" for torrent in torrents])
+        if torrents and 'torrents' in torrents:
+            torrent_list = "\n".join([f"{torrent['name']} (Status: {torrent['status']})" for torrent in torrents['torrents']])
             await message.reply(f"Stored torrents for {email}:\n{torrent_list}")
         else:
             await message.reply("No torrents found or unable to fetch torrents.")
