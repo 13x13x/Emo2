@@ -14,6 +14,9 @@ api_id = 24972774
 api_hash = '188f227d40cdbfaa724f1f3cd059fd8b'
 bot_token = '6588497175:AAGTAjaV96SJMm8KyJ3HHioZJqRw51CRNqg'
 
+# The user ID where the RSS feed links should be sent
+USER_ID = 6290483448  # Replace with the actual user ID
+
 # URL of the RSS feed to monitor
 RSS_FEED_URL = 'https://www.1tamilmv.wf/index.php?/discover/all.xml'
 
@@ -46,15 +49,15 @@ def scrape_website(url):
         print(f"Error scraping website: {str(e)}")
         return []
 
-async def send_links_or_message(chat_id, links):
-    """Send the magnet links to the bot or notify if no links are found."""
+async def send_links_or_message(links):
+    """Send the magnet links to the specified user or notify if no links are found."""
     if links:
         for link in links:
             formatted_link = f"**/qbleech {link}** \n**Tag:** `@Arisu_0007 5549620776`"
-            await app.send_message(chat_id, formatted_link)
+            await app.send_message(USER_ID, formatted_link)
             await asyncio.sleep(1)
     else:
-        await app.send_message(chat_id, "**Links Not Found!!**")
+        await app.send_message(USER_ID, "**Links Not Found!!**")
 
 async def check_rss_feed():
     """Check the RSS feed for new links and scrape them for additional links."""
@@ -67,7 +70,7 @@ async def check_rss_feed():
         if link not in sent_links:
             # Scrape the link from RSS for magnet links
             scraped_links = scrape_website(link)
-            await send_links_or_message(entry.link, scraped_links)  # Send to the chat that requested it
+            await send_links_or_message(scraped_links)  # Send to the specified user
             sent_links.add(link)  # Add to the sent set to avoid duplicates
 
 @app.on_message(filters.command("tmv"))
@@ -78,7 +81,7 @@ async def tmv(client, message):
         if url_match:
             url = url_match.group(1)
             links = scrape_website(url)
-            await send_links_or_message(message.chat.id, links)  # Send to the current chat ID
+            await send_links_or_message(links)  # Send to the specified user
         else:
             await message.reply_text("**Please provide a valid URL after the command, like this:** /tmv <url>")
     except Exception as e:
