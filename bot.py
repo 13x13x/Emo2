@@ -34,8 +34,16 @@ app = Client(
     workdir="./sessions"
 )
 
+# Path to store the sent links in a file (to persist the sent state)
+SENT_LINKS_FILE = "sent_links.txt"
+
 # Create a set to store previously sent links
 sent_links = set()
+
+# Load sent links from the file if it exists
+if os.path.exists(SENT_LINKS_FILE):
+    with open(SENT_LINKS_FILE, 'r') as f:
+        sent_links = set(f.read().splitlines())
 
 def scrape_website(url):
     """Scrape magnet links from the provided URL."""
@@ -70,12 +78,21 @@ async def check_rss_feed():
 
     for entry in feed.entries:
         link = entry.link
-        # Skip old or duplicate links
-        if link not in sent_links:
-            # Scrape the link from RSS for magnet links
-            scraped_links = scrape_website(link)
-            await send_links_or_message(scraped_links)  # Send to the specified user
-            sent_links.add(link)  # Add to the sent set to avoid duplicates
+
+        # Only process links that contain 'index.php?' or 'forums/topic'
+        if "index.php?" in link or "forums/topic" in link:
+            # Skip old or duplicate links
+            if link not in sent_links:
+                # Scrape the link from RSS for magnet links
+                scraped_links = scrape_website(link)
+                await send_links_or_message(scraped_links)  # Send to the specified user
+                sent_links.add(link)  # Add to the sent set to avoid duplicates
+
+                # Save the sent links to the file
+                with open(SENT_LINKS_FILE, 'a') as f:
+                    f.write(link + '\n')
+        else:
+            print(f"Skipping link: {link}")
 
 @app.on_message(filters.command("tmv"))
 async def tmv(client, message):
