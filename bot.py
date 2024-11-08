@@ -16,7 +16,7 @@ bot_token = '6588497175:AAGTAjaV96SJMm8KyJ3HHioZJqRw51CRNqg'
 CHAT_ID = '5549620776'  # Replace with your chat ID
 
 # URL of the RSS feed to monitor
-RSS_FEED_URL = 'https://rss.app/feeds/FFh0vlIMaf9K5TPJ.xml'
+RSS_FEED_URL = 'https://www.1tamilmv.wf/index.php?/discover/all.xml'
 
 session_name = f"web_scraper_bot_{api_id}_{uuid.uuid4()}"
 os.makedirs("./sessions", exist_ok=True)
