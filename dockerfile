@@ -1,22 +1,15 @@
-FROM python:3.10-slim
+# Use Python 3.10 as the base image
+FROM python:3.10
 
-# Install dependencies
-RUN apt-get update && \
-    apt-get install -y aria2 python3-libtorrent && \
-    rm -rf /var/lib/apt/lists/*
-
-# Create the aria2 config directory and file
-RUN mkdir -p /root/.aria2 && \
-    echo "enable-rpc=true\nrpc-listen-all=true\nrpc-allow-origin-all=true" > /root/.aria2/aria2.conf
-
+# Set the working directory
 WORKDIR /app
 
-# Copy requirements and install Python dependencies
-COPY requirements.txt /app/
-RUN pip install --no-cache-dir -r requirements.txt
+# Copy requirements.txt and install dependencies
+COPY requirements.txt .
+RUN pip install -r requirements.txt
 
-# Copy bot code
-COPY . /app
+# Copy the bot script to the working directory
+COPY bot.py .
 
-# Start aria2 in the background and then start the bot
-CMD aria2c --conf-path=/root/.aria2/aria2.conf & python3 bot.py
+# Run the bot
+CMD ["python", "bot.py"]
