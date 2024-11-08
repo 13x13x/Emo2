@@ -13,7 +13,10 @@ import re
 api_id = 24972774
 api_hash = '188f227d40cdbfaa724f1f3cd059fd8b'
 bot_token = '6588497175:AAGTAjaV96SJMm8KyJ3HHioZJqRw51CRNqg'
-CHAT_ID = '5549620776'  # Replace with your chat ID
+
+# Replace with your actual chat ID (or dynamically use the owner's ID)
+CHAT_ID = '5549620776'  # Static chat ID or dynamically use owner ID
+OWNER_ID = CHAT_ID  # Alternatively, use `OWNER_ID` to dynamically send to the bot owner
 
 # URL of the RSS feed to monitor
 RSS_FEED_URL = 'https://www.1tamilmv.wf/index.php?/discover/all.xml'
@@ -44,6 +47,7 @@ def scrape_website(url):
         else:
             return []
     except Exception as e:
+        print(f"Error scraping website: {str(e)}")
         return []
 
 async def send_links_or_message(chat_id, links):
@@ -67,7 +71,7 @@ async def check_rss_feed():
         if link not in sent_links:
             # Scrape the link from RSS for magnet links
             scraped_links = scrape_website(link)
-            await send_links_or_message(CHAT_ID, scraped_links)
+            await send_links_or_message(OWNER_ID, scraped_links)  # Send to the owner or specified chat ID
             sent_links.add(link)  # Add to the sent set to avoid duplicates
 
 @app.on_message(filters.command("tmv"))
@@ -78,7 +82,7 @@ async def tmv(client, message):
         if url_match:
             url = url_match.group(1)
             links = scrape_website(url)
-            await send_links_or_message(message.chat.id, links)
+            await send_links_or_message(message.chat.id, links)  # Send to the current chat ID
         else:
             await message.reply_text("**Please provide a valid URL after the command, like this:** /tmv <url>")
     except Exception as e:
