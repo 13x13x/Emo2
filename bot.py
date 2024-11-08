@@ -13,7 +13,7 @@ from datetime import datetime, timedelta
 # Telegram bot configuration
 api_id = 24972774
 api_hash = '188f227d40cdbfaa724f1f3cd059fd8b'
-bot_token = '8077849038:AAG_gTQQQ08S0vqHwn8Q38lhrLI7twvFwTA'
+bot_token = '6588497175:AAGTAjaV96SJMm8KyJ3HHioZJqRw51CRNqg'
 
 # The user ID where the RSS feed links should be sent
 USER_ID = 7768576522  # Replace with the actual user ID
