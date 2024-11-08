@@ -20,6 +20,9 @@ USER_ID = 6290483448  # Replace with the actual user ID
 # URL of the RSS feed to monitor
 RSS_FEED_URL = 'https://www.1tamilmv.wf/index.php?/discover/all.xml'
 
+# Maximum number of links to send in one batch to avoid Telegram rate limit
+MAX_LINKS_PER_BATCH = 5  # Adjust this number based on your needs (default is 5)
+
 session_name = f"web_scraper_bot_{api_id}_{uuid.uuid4()}"
 os.makedirs("./sessions", exist_ok=True)
 
@@ -52,10 +55,11 @@ def scrape_website(url):
 async def send_links_or_message(links):
     """Send the magnet links to the specified user or notify if no links are found."""
     if links:
-        for link in links:
+        # Limit the number of links to send in one batch to avoid rate limits
+        for i, link in enumerate(links[:MAX_LINKS_PER_BATCH]):
             formatted_link = f"**/qbleech {link}** \n**Tag:** `@Arisu_0007 5549620776`"
             await app.send_message(USER_ID, formatted_link)
-            await asyncio.sleep(1)
+            await asyncio.sleep(1)  # Small delay to avoid rate limits
     else:
         await app.send_message(USER_ID, "**Links Not Found!!**")
 
@@ -66,7 +70,7 @@ async def check_rss_feed():
 
     for entry in feed.entries:
         link = entry.link
-        # Send the link if it hasn't been sent before
+        # Skip old or duplicate links
         if link not in sent_links:
             # Scrape the link from RSS for magnet links
             scraped_links = scrape_website(link)
