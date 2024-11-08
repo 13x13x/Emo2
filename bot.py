@@ -113,7 +113,6 @@ async def check_rss_feed():
         last_processed_entry = link
 
 @app.on_message(filters.command("tmv"))
-@app.on_message(filters.reply & filters.private)
 async def tmv(client, message):
     """Handle the /tmv command by scraping the provided URL."""
     try:
