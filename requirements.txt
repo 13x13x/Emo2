@@ -1,7 +1,6 @@
-gunicorn
+feedparser
 pyrogram
-aiohttp
-seedrcc
-tgcrypto
+beautifulsoup4
 requests
-motor
+nest_asyncio
+nest-asyncio
