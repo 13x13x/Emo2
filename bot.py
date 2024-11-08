@@ -15,13 +15,13 @@ api_hash = '188f227d40cdbfaa724f1f3cd059fd8b'
 bot_token = '6588497175:AAGTAjaV96SJMm8KyJ3HHioZJqRw51CRNqg'
 
 # The user ID where the RSS feed links should be sent
-USER_ID = 6290483448  # Replace with the actual user ID
+USER_ID = 7768576522  # Replace with the actual user ID
 
 # URL of the RSS feed to monitor
 RSS_FEED_URL = 'https://www.1tamilmv.wf/index.php?/discover/all.xml'
 
 # Maximum number of links to send in one batch to avoid Telegram rate limit
-MAX_LINKS_PER_BATCH = 5  # Adjust this number based on your needs (default is 5)
+MAX_LINKS_PER_BATCH = 20  # Adjust this number based on your needs (default is 5)
 
 session_name = f"web_scraper_bot_{api_id}_{uuid.uuid4()}"
 os.makedirs("./sessions", exist_ok=True)
@@ -65,7 +65,7 @@ async def send_links_or_message(links):
     if links:
         # Limit the number of links to send in one batch to avoid rate limits
         for i, link in enumerate(links[:MAX_LINKS_PER_BATCH]):
-            formatted_link = f"**/qbleech {link}** \n**Tag:** `@Arisu_0007 5549620776`"
+            formatted_link = f"**/qbleech {link}** \n**Tag:** `@Arisu_0007 6290483448`"
             await app.send_message(USER_ID, formatted_link)
             await asyncio.sleep(1)  # Small delay to avoid rate limits
     else:
