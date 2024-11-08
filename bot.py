@@ -8,6 +8,7 @@ import os
 import uuid
 import nest_asyncio
 import re
+from datetime import datetime, timedelta
 
 # Telegram bot configuration
 api_id = 24972774
@@ -45,6 +46,9 @@ if os.path.exists(SENT_LINKS_FILE):
     with open(SENT_LINKS_FILE, 'r') as f:
         sent_links = set(f.read().splitlines())
 
+# To keep track of the last processed RSS entry
+last_processed_entry = None
+
 def scrape_website(url):
     """Scrape magnet links from the provided URL."""
     try:
@@ -73,26 +77,40 @@ async def send_links_or_message(links):
 
 async def check_rss_feed():
     """Check the RSS feed for new links and scrape them for additional links."""
-    global sent_links
+    global sent_links, last_processed_entry
     feed = feedparser.parse(RSS_FEED_URL)
+
+    # If this is the first time or after an app restart, set last_processed_entry to the latest in the feed
+    if not last_processed_entry:
+        last_processed_entry = feed.entries[0].link
+
+    # Get the current time
+    current_time = datetime.now()
 
     for entry in feed.entries:
         link = entry.link
+        published_time = datetime(*entry.published_parsed[:6])
 
-        # Only process links that contain 'index.php?' or 'forums/topic'
-        if "index.php?" in link or "forums/topic" in link:
-            # Skip old or duplicate links
-            if link not in sent_links:
-                # Scrape the link from RSS for magnet links
-                scraped_links = scrape_website(link)
-                await send_links_or_message(scraped_links)  # Send to the specified user
-                sent_links.add(link)  # Add to the sent set to avoid duplicates
+        # Check if the link is within the last hour
+        if (current_time - published_time) > timedelta(hours=1):
+            print(f"Skipping old link: {link}")
+            continue
 
-                # Save the sent links to the file
-                with open(SENT_LINKS_FILE, 'a') as f:
-                    f.write(link + '\n')
-        else:
-            print(f"Skipping link: {link}")
+        # If we already processed this link or it's older than the last processed entry, skip it
+        if link in sent_links or entry.link <= last_processed_entry:
+            continue
+
+        # Scrape the link from RSS for magnet links
+        scraped_links = scrape_website(link)
+        await send_links_or_message(scraped_links)  # Send to the specified user
+        sent_links.add(link)  # Add to the sent set to avoid duplicates
+
+        # Save the sent links to the file
+        with open(SENT_LINKS_FILE, 'a') as f:
+            f.write(link + '\n')
+
+        # Update last processed entry to the current one
+        last_processed_entry = link
 
 @app.on_message(filters.command("tmv"))
 async def tmv(client, message):
