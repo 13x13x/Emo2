@@ -16,7 +16,7 @@ api_hash = '188f227d40cdbfaa724f1f3cd059fd8b'
 bot_token = '6588497175:AAGTAjaV96SJMm8KyJ3HHioZJqRw51CRNqg'
 
 # The user ID where the RSS feed links should be sent
-USER_ID = 7768576522  # Replace with the actual user ID
+USER_ID = 6290483448  # Replace with the actual user ID
 
 # URL of the RSS feed to monitor
 RSS_FEED_URL = 'https://www.1tamilmv.wf/index.php?/discover/all.xml'
