@@ -1,7 +1,7 @@
 import feedparser
 import time
 import requests
-from pyrogram import Client, filters
+from pyrogram import Client, filters, idle
 from bs4 import BeautifulSoup
 import asyncio
 import os
