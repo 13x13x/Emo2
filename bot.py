@@ -140,8 +140,6 @@ async def main():
             await asyncio.sleep(900)  # Wait for 900 seconds (15 minutes)
     except Exception as e:
         print(f"Error: {str(e)}")
-    finally:
-        await app.stop()
 
 async def main():
     await app.start()
