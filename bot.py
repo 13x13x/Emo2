@@ -121,20 +121,26 @@ async def tmv(client, message):
       /tmv -i <number> <url> - Sends only the specified number of links from the URL.
     """
     try:
-        # Parse the input message for flags and URL
+        # Split the message text into parts
         parts = message.text.split()
+
         if len(parts) < 2:
             await message.reply_text("**Usage:** /tmv <url> or /tmv -i <number> <url>")
             return
 
-        # Check if the `-i` flag is provided
+        # Check if the `-i` flag is present
         if "-i" in parts:
-            try:
-                index_flag = parts.index("-i")
-                num_links = int(parts[index_flag + 1])  # Get the number of links to send
-                url = parts[index_flag + 2]  # Get the URL
-            except (ValueError, IndexError):
+            index_flag = parts.index("-i")
+            if len(parts) <= index_flag + 2:
+                # Insufficient arguments after `-i`
                 await message.reply_text("**Usage:** /tmv -i <number> <url>")
+                return
+
+            try:
+                num_links = int(parts[index_flag + 1])  # Number of links to send
+                url = parts[index_flag + 2]  # URL to scrape
+            except ValueError:
+                await message.reply_text("**The number of links must be an integer.**")
                 return
         else:
             # If no `-i` flag, treat the last part as the URL
@@ -147,7 +153,7 @@ async def tmv(client, message):
             await message.reply_text("**No links found on the provided URL.**")
             return
 
-        # Send only the specified number of links if `-i` is used
+        # If `-i` was used, limit the number of links to send
         if num_links:
             links_to_send = links[:num_links]
             await message.reply_text(f"**Sending the first {num_links} links:**")
@@ -155,7 +161,7 @@ async def tmv(client, message):
             links_to_send = links
             await message.reply_text(f"**Sending all {len(links)} links:**")
 
-        # Send the links in batches
+        # Send the links
         await send_links_or_message(links_to_send)
 
     except Exception as e:
