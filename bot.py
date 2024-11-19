@@ -7,8 +7,10 @@ import asyncio
 import os
 import uuid
 import nest_asyncio
-import re
-from datetime import datetime, timedelta
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+from webdriver_manager.chrome import ChromeDriverManager
+from selenium.webdriver.common.by import By
 
 # Telegram bot configuration
 api_id = 24972774
@@ -16,7 +18,6 @@ api_hash = '188f227d40cdbfaa724f1f3cd059fd8b'
 bot_token = '6588497175:AAGTAjaV96SJMm8KyJ3HHioZJqRw51CRNqg'
 
 USER_ID = 6290483448  # Replace with the actual user ID
-RSS_FEED_URL = 'https://www.1tamilmv.wf/index.php?/discover/all.xml'
 MAX_LINKS_PER_BATCH = 20
 session_name = f"web_scraper_bot_{api_id}_{uuid.uuid4()}"
 os.makedirs("./sessions", exist_ok=True)
@@ -36,21 +37,33 @@ if os.path.exists(SENT_LINKS_FILE):
     with open(SENT_LINKS_FILE, 'r') as f:
         sent_links = set(f.read().splitlines())
 
-last_processed_entry = None
 
 def scrape_website(url):
-    """Scrape magnet links from the provided URL."""
+    """Scrape magnet links from a dynamically loaded website."""
     try:
-        response = requests.get(url)
-        if response.status_code == 200:
-            soup = BeautifulSoup(response.content, 'html.parser')
-            links = [a['href'] for a in soup.find_all('a', href=True) if a['href'].startswith("magnet:?xt")]
-            return links
-        else:
-            return []
+        # Set up Selenium WebDriver
+        options = webdriver.ChromeOptions()
+        options.add_argument('--headless')
+        options.add_argument('--disable-gpu')
+        options.add_argument('--no-sandbox')
+        driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
+
+        # Open the URL
+        driver.get(url)
+        time.sleep(3)  # Wait for the page to load fully
+
+        # Find all anchor tags with magnet links
+        links = [
+            a.get_attribute('href')
+            for a in driver.find_elements(By.TAG_NAME, 'a')
+            if "magnet:?" in a.get_attribute('href')
+        ]
+        driver.quit()
+        return links
     except Exception as e:
         print(f"Error scraping website: {str(e)}")
         return []
+
 
 async def send_links_or_message(links):
     """Send magnet links or a message to the user."""
@@ -61,6 +74,7 @@ async def send_links_or_message(links):
             await asyncio.sleep(1)
     else:
         await app.send_message(USER_ID, "**Links Not Found!!**")
+
 
 @app.on_message(filters.command("tmv"))
 async def tmv(client, message):
@@ -116,11 +130,13 @@ async def tmv(client, message):
     except Exception as e:
         await message.reply_text(f"**Error:** {str(e)}")
 
+
 async def main():
     await app.start()
     print("Bot is running...")
     await idle()
     await app.stop()
+
 
 # Apply nest_asyncio to avoid event loop issues
 nest_asyncio.apply()
