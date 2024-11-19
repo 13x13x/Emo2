@@ -1,6 +1,8 @@
 feedparser
 pyrogram
 beautifulsoup4
+selenium==4.10.0
+webdriver-manager==5.3.0
 requests
 TgCrypto
 nest_asyncio
