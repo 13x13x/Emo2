@@ -134,18 +134,13 @@ async def tmv(client, message):
 async def main():
     """Main loop to check RSS feed every 900 seconds and handle bot commands."""
     await app.start()
+    print("Bot is running...")
     try:
         while True:
             await check_rss_feed()
             await asyncio.sleep(900)  # Wait for 900 seconds (15 minutes)
     except Exception as e:
         print(f"Error: {str(e)}")
-
-async def main():
-    await app.start()
-    print("Bot is running...")
-    await idle()
-    await app.stop()
 
 # Apply nest_asyncio to avoid event loop issues
 nest_asyncio.apply()
