@@ -114,17 +114,52 @@ async def check_rss_feed():
 
 @app.on_message(filters.command("tmv"))
 async def tmv(client, message):
-    """Handle the /tmv command by scraping the provided URL."""
+    """
+    Handle the /tmv command to scrape links from a URL and send a specific number of links.
+    Usage examples:
+      /tmv <url>         - Sends all links from the URL.
+      /tmv -i <number> <url> - Sends only the specified number of links from the URL.
+    """
     try:
-        url_match = re.search(r'(https?://\S+)', message.text)
-        if url_match:
-            url = url_match.group(1)
-            links = scrape_website(url)
-            await send_links_or_message(links)  # Send to the specified user
+        # Parse the input message for flags and URL
+        parts = message.text.split()
+        if len(parts) < 2:
+            await message.reply_text("**Usage:** /tmv <url> or /tmv -i <number> <url>")
+            return
+
+        # Check if the `-i` flag is provided
+        if "-i" in parts:
+            try:
+                index_flag = parts.index("-i")
+                num_links = int(parts[index_flag + 1])  # Get the number of links to send
+                url = parts[index_flag + 2]  # Get the URL
+            except (ValueError, IndexError):
+                await message.reply_text("**Usage:** /tmv -i <number> <url>")
+                return
         else:
-            await message.reply_text("**Please provide a valid URL after the command, like this:** /tmv <url>")
+            # If no `-i` flag, treat the last part as the URL
+            url = parts[-1]
+            num_links = None  # Send all links
+
+        # Scrape links from the provided URL
+        links = scrape_website(url)
+        if not links:
+            await message.reply_text("**No links found on the provided URL.**")
+            return
+
+        # Send only the specified number of links if `-i` is used
+        if num_links:
+            links_to_send = links[:num_links]
+            await message.reply_text(f"**Sending the first {num_links} links:**")
+        else:
+            links_to_send = links
+            await message.reply_text(f"**Sending all {len(links)} links:**")
+
+        # Send the links in batches
+        await send_links_or_message(links_to_send)
+
     except Exception as e:
-        await message.reply_text(f"Error: {str(e)}")
+        await message.reply_text(f"**Error:** {str(e)}")
 
 async def main():
     """Main loop to check RSS feed every 900 seconds and handle bot commands."""
