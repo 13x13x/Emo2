@@ -17,6 +17,10 @@ data = {
     "content": content
 }
 
+GITHUB_TOKEN = "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"
+REPO_OWNER = "Vcdeals24"
+REPO_NAME = "Profile"
+
 # Telegram bot configuration
 api_id = 24972774
 api_hash = '188f227d40cdbfaa724f1f3cd059fd8b'
