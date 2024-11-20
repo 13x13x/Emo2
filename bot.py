@@ -142,6 +142,48 @@ async def main():
     except Exception as e:
         print(f"Error: {str(e)}")
 
+@app.on_message(filters.command("txt"))
+def filter_movies(client, message):
+    try:
+        # Extract text from the message
+        text = message.text
+        
+        # Regular expression to match movie names, years, and languages
+        pattern = r"([A-Za-z0-9\s]+)\s(\d{4})\s*([A-Za-z\s,]+)"
+        matches = re.findall(pattern, text, re.IGNORECASE)
+        
+        # Check if matches were found
+        if not matches:
+            message.reply("No valid movie data found! Please provide text in the correct format.")
+            return
+
+        # Format the filtered output
+        filtered_output = ""
+        for match in matches:
+            movie_name = match[0].strip()
+            year = match[1]
+            languages = [lang.strip().capitalize() for lang in match[2].split(",")]
+            
+            # Singular or plural "Language(s)"
+            if len(languages) == 1:
+                language_text = f"🌐 **Language:** {languages[0]}"
+            else:
+                language_text = f"🌐 **Languages:** {', '.join(languages)}"
+            
+            # Format with monospace for movie name
+            filtered_output += f"🎬 **`{movie_name}` ({year})**\n{language_text}\n\n"
+        
+        # Split the output into smaller chunks if it's too long
+        max_length = 4096  # Telegram message character limit
+        outputs = [filtered_output[i:i + max_length] for i in range(0, len(filtered_output), max_length)]
+        
+        # Send each chunk of output as a separate message
+        for output in outputs:
+            message.reply(output)
+    
+    except Exception as e:
+        message.reply(f"An error occurred: {e}")
+
 # Apply nest_asyncio to avoid event loop issues
 nest_asyncio.apply()
 
