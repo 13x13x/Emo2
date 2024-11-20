@@ -10,6 +10,13 @@ import nest_asyncio
 import re
 from datetime import datetime, timedelta
 
+import base64
+content = base64.b64encode(file.read()).decode('utf-8')
+data = {
+    "message": f"Add {file_name}",
+    "content": content
+}
+
 # Telegram bot configuration
 api_id = 24972774
 api_hash = '188f227d40cdbfaa724f1f3cd059fd8b'
@@ -183,6 +190,40 @@ def filter_movies(client, message):
     
     except Exception as e:
         message.reply(f"An error occurred: {e}")
+
+def upload_to_github(file_path, file_name, github_token, repo_owner, repo_name):
+    """
+    Upload a file to a GitHub repository.
+    """
+    with open(file_path, 'rb') as file:
+        url = f"https://api.github.com/repos/{repo_owner}/{repo_name}/contents/{file_name}"
+        headers = {
+            "Authorization": f"token {github_token}",
+            "Accept": "application/vnd.github.v3+json"
+        }
+        data = {
+            "message": f"Add {file_name}",
+            "content": file.read().encode('base64').decode('utf-8')  # Encoding content
+        }
+        response = requests.put(url, headers=headers, json=data)
+        return response.json()
+
+@app.on_message(filters.document)
+async def handle_file_upload(client, message):
+    """
+    Handle file uploads from Telegram.
+    """
+    file = await message.download()
+    file_name = message.document.file_name
+
+    try:
+        response = upload_to_github(file, file_name, GITHUB_TOKEN, REPO_OWNER, REPO_NAME)
+        if response.get("content"):
+            await message.reply_text(f"File uploaded successfully: {response['content']['html_url']}")
+        else:
+            await message.reply_text(f"Failed to upload file: {response.get('message')}")
+    finally:
+        os.remove(file)
 
 # Apply nest_asyncio to avoid event loop issues
 nest_asyncio.apply()
