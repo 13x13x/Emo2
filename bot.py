@@ -10,13 +10,6 @@ import nest_asyncio
 import re
 from datetime import datetime, timedelta
 
-import base64
-content = base64.b64encode(file.read()).decode('utf-8')
-data = {
-    "message": f"Add {file_name}",
-    "content": content
-}
-
 GITHUB_TOKEN = "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"
 REPO_OWNER = "Vcdeals24"
 REPO_NAME = "Profile"
