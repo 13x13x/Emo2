@@ -20,7 +20,7 @@ API_HASH = '188f227d40cdbfaa724f1f3cd059fd8b'
 BOT_TOKEN = '6588497175:AAGTAjaV96SJMm8KyJ3HHioZJqRw51CRNqg'
 USER_ID = 6290483448  # Replace with the actual user ID
 MAX_LINKS_PER_BATCH = 20
-RSS_FEED_URL = 'https://www.1tamilmv.wf/index.php?/discover/all.xml'
+RSS_FEED_URL = 'https://www.1tamilmv.at/index.php?/discover/all.xml'
 
 # Session configuration
 session_name = f"web_scraper_bot_{API_ID}_{uuid.uuid4()}"
