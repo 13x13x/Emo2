@@ -14,7 +14,7 @@ api_hash = '188f227d40cdbfaa724f1f3cd059fd8b'
 bot_token = '6588497175:AAGTAjaV96SJMm8KyJ3HHioZJqRw51CRNqg'
 
 USER_ID = 6290483448  # Replace with the actual user ID
-RSS_FEED_URL = 'https://www.1tamilmv.at/index.php?/discover/all.xml'
+RSS_FEED_URL = 'https://www.1tamilblasters.my/index.php?/discover/all.xml'
 MAX_LINKS_PER_BATCH = 20
 session_name = f"web_scraper_bot_{api_id}_{uuid.uuid4()}"
 os.makedirs("./sessions", exist_ok=True)
