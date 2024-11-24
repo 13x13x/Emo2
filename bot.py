@@ -142,9 +142,6 @@ async def main():
     except Exception as e:
         print(f"Error: {str(e)}")
 
-import re
-from pyrogram import Client, filters
-
 # Mapping of language abbreviations to full names
 LANGUAGE_MAP = {
     "Tel": "Telugu",
@@ -168,7 +165,7 @@ def filter_movies(client, message):
         text = message.text
 
         # Regular expression to match movies and web series data
-        pattern = r"@[\w]+ - - ([A-Za-z0-9\s]+) (\d{4})\s*(S(\d{2})\s*EP(\d{2}-\d{2}))?.*??([A-Za-z\s\+,]*)?"
+        pattern = r"([A-Za-z0-9\s]+)\s*(\d{4}).*([A-Za-z\s\+,]*)"
         matches = re.findall(pattern, text, re.IGNORECASE)
 
         # Check if matches were found
@@ -181,10 +178,7 @@ def filter_movies(client, message):
         for match in matches:
             title = match[0].strip()
             year = match[1]
-            season_episode = match[3].strip() if match[3] else None
-            season = match[4] if match[4] else None
-            episodes = match[5] if match[5] else None
-            languages_raw = match[6]
+            languages_raw = match[2]
             languages = [lang.strip().capitalize() for lang in languages_raw.split("+") if lang.strip()]
 
             # Convert abbreviations to full names
@@ -197,18 +191,7 @@ def filter_movies(client, message):
                 language_text = f"🌐 **Languages:** {', '.join(full_languages)}"
             
             # Format the output
-            if season and episodes:
-                filtered_output += (
-                    f"🎬 **`{title}` ({year})**\n"
-                    f"📺 **Season:** {season}\n"
-                    f"🎞 **Episodes:** {episodes}\n"
-                    f"{language_text}\n\n"
-                )
-            else:
-                filtered_output += (
-                    f"🎬 **`{title}` ({year})**\n"
-                    f"{language_text}\n\n"
-                )
+            filtered_output += f"🎬 **`{title}` ({year})**\n{language_text}\n\n"
         
         # Split the output into smaller chunks if it's too long
         max_length = 4096  # Telegram message character limit
@@ -220,7 +203,6 @@ def filter_movies(client, message):
     
     except Exception as e:
         message.reply(f"An error occurred: {e}")
-        
 # Apply nest_asyncio to avoid event loop issues
 nest_asyncio.apply()
 
