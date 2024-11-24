@@ -142,6 +142,9 @@ async def main():
     except Exception as e:
         print(f"Error: {str(e)}")
 
+import re
+from pyrogram import Client, filters
+
 # Mapping of language abbreviations to full names
 LANGUAGE_MAP = {
     "Tel": "Telugu",
@@ -159,13 +162,13 @@ LANGUAGE_MAP = {
 }
 
 @app.on_message(filters.command("txt"))
-def filter_movies(client, message):
+def filter_movies_or_series(client, message):
     try:
         # Extract text from the message
         text = message.text
 
-        # Regular expression to match movies and web series data
-        pattern = r"([A-Za-z0-9\s]+)\s*(\d{4}).*([A-Za-z\s\+,]*)"
+        # Regular expression to match title, year, season, episode, and languages
+        pattern = r"(.*?)(\d{4}).*?(S\d{1,2})?.*?(EP(?:isode)?(?:\s?\d{1,2}(?:-\d{1,2})?)?)?.*?([^]+)"
         matches = re.findall(pattern, text, re.IGNORECASE)
 
         # Check if matches were found
@@ -178,31 +181,36 @@ def filter_movies(client, message):
         for match in matches:
             title = match[0].strip()
             year = match[1]
-            languages_raw = match[2]
-            languages = [lang.strip().capitalize() for lang in languages_raw.split("+") if lang.strip()]
+            season = match[2]
+            episode = match[3]
+            languages_raw = match[4]
+            languages = [lang.strip() for lang in languages_raw.split("+") if lang.strip()]
 
             # Convert abbreviations to full names
             full_languages = [LANGUAGE_MAP.get(lang, lang) for lang in languages]
 
-            # Singular or plural "Language(s)"
-            if len(full_languages) == 1:
-                language_text = f"🌐 **Language:** {full_languages[0]}"
+            # Build output for series or movie
+            if season or episode:
+                # Web series formatting
+                filtered_output += (
+                    f"📺 **`{title}` ({year})**\n"
+                    f"🎞 **Season:** {season.replace('S', '') if season else 'N/A'}\n"
+                    f"🎥 **Episodes:** {episode.replace('EP', '').strip() if episode else 'N/A'}\n"
+                    f"🌐 **Languages:** {', '.join(full_languages)}\n\n"
+                )
             else:
-                language_text = f"🌐 **Languages:** {', '.join(full_languages)}"
-            
-            # Format the output
-            filtered_output += f"🎬 **`{title}` ({year})**\n{language_text}\n\n"
-        
-        # Split the output into smaller chunks if it's too long
-        max_length = 4096  # Telegram message character limit
-        outputs = [filtered_output[i:i + max_length] for i in range(0, len(filtered_output), max_length)]
-        
-        # Send each chunk of output as a separate message
-        for output in outputs:
-            message.reply(output)
-    
+                # Movie formatting
+                filtered_output += (
+                    f"🎬 **`{title}` ({year})**\n"
+                    f"🌐 **Languages:** {', '.join(full_languages)}\n\n"
+                )
+
+        # Send the filtered output
+        message.reply(filtered_output.strip())
+
     except Exception as e:
         message.reply(f"An error occurred: {e}")
+        
 # Apply nest_asyncio to avoid event loop issues
 nest_asyncio.apply()
 
