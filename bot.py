@@ -1,112 +1,77 @@
+import feedparser
+import requests
+from pyrogram import Client, filters, idle
+from bs4 import BeautifulSoup
 import asyncio
 import os
 import uuid
-import aiohttp
-import feedparser
-from datetime import datetime, timedelta
-from pyrogram import Client, filters, idle
-from bs4 import BeautifulSoup
-import logging
-
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(message)s",
-)
+import nest_asyncio
+from datetime import datetime
 
 # Telegram bot configuration
-API_ID = 24972774
-API_HASH = '188f227d40cdbfaa724f1f3cd059fd8b'
-BOT_TOKEN = '6588497175:AAGTAjaV96SJMm8KyJ3HHioZJqRw51CRNqg'
-USER_ID = 6290483448  # Replace with the actual user ID
-MAX_LINKS_PER_BATCH = 20
-RSS_FEED_URL = 'https://www.1tamilmv.at/index.php?/discover/all.xml'
+api_id = 24972774
+api_hash = '188f227d40cdbfaa724f1f3cd059fd8b'
+bot_token = '6588497175:AAGTAjaV96SJMm8KyJ3HHioZJqRw51CRNqg'
 
-# Session configuration
-session_name = f"web_scraper_bot_{API_ID}_{uuid.uuid4()}"
+USER_ID = 6290483448  # Replace with the actual user ID
+RSS_FEED_URL = 'https://www.1tamilmv.wf/index.php?/discover/all.xml'
+MAX_LINKS_PER_BATCH = 20
+session_name = f"web_scraper_bot_{api_id}_{uuid.uuid4()}"
 os.makedirs("./sessions", exist_ok=True)
 
 app = Client(
     session_name,
-    api_id=API_ID,
-    api_hash=API_HASH,
-    bot_token=BOT_TOKEN,
+    api_id=api_id,
+    api_hash=api_hash,
+    bot_token=bot_token,
     workdir="./sessions"
 )
 
 SENT_LINKS_FILE = "sent_links.txt"
 sent_links = set()
 
-# Load sent links from file
+# Load already processed links from the file
 if os.path.exists(SENT_LINKS_FILE):
     with open(SENT_LINKS_FILE, 'r') as f:
         sent_links = set(f.read().splitlines())
 
+def save_sent_link(link):
+    """Save processed links to the file."""
+    sent_links.add(link)
+    with open(SENT_LINKS_FILE, 'a') as f:
+        f.write(link + "\n")
 
-async def scrape_website(url):
-    """Scrape magnet and file links from the provided URL."""
+def scrape_website(url):
+    """Scrape links from the provided URL."""
     try:
-        async with aiohttp.ClientSession() as session:
-            async with session.get(url) as response:
-                if response.status == 200:
-                    soup = BeautifulSoup(await response.text(), 'html.parser')
-                    # Extract both magnet and file links
-                    magnet_links = [a['href'] for a in soup.find_all('a', href=True) if a['href'].startswith("magnet:?xt")]
-                    file_links = [a['href'] for a in soup.find_all('a', href=True) if "applications/core/interface/file" in a['href']]
-                    return magnet_links + file_links
-                else:
-                    logging.error(f"Non-200 response code: {response.status} for URL: {url}")
-                    return []
+        response = requests.get(url)
+        if response.status_code == 200:
+            soup = BeautifulSoup(response.content, 'html.parser')
+            magnet_links = [a['href'] for a in soup.find_all('a', href=True) if a['href'].startswith("magnet:?xt")]
+            file_links = [a['href'] for a in soup.find_all('a', href=True) if "applications/core/interface/file" in a['href']]
+            return magnet_links, file_links
+        else:
+            return [], []
     except Exception as e:
-        logging.error(f"Error scraping website {url}: {str(e)}")
-        return []
+        print(f"Error scraping website: {str(e)}")
+        return [], []
 
-
-async def fetch_rss_links():
-    """Fetch and process new links from the RSS feed."""
-    try:
-        feed = feedparser.parse(RSS_FEED_URL)
-        new_links = []
-
-        for entry in feed.entries:
-            link = entry.link
-            if link not in sent_links:
-                logging.info(f"New link found: {link}")
-                new_links.append(link)
-                sent_links.add(link)
-
-        # Save sent links to file
-        with open(SENT_LINKS_FILE, 'w') as f:
-            f.write("\n".join(sent_links))
-
-        return new_links
-    except Exception as e:
-        logging.error(f"Error fetching RSS feed: {str(e)}")
-        return []
-
-
-async def send_links_or_message(links):
-    """Send magnet and file links or a message to the user."""
+async def send_links_or_message(links, link_type="magnet"):
+    """Send magnet or fallback links, or a message if no links are found."""
     if links:
         for i, link in enumerate(links[:MAX_LINKS_PER_BATCH]):
-            formatted_link = f"**/qbleech {link}** \n**Tag:** `@Arisu_0007 {USER_ID}`"
+            formatted_link = f"**/qbleech {link}** \n**Tag:** `@Arisu_0007 6290483448`"
             await app.send_message(USER_ID, formatted_link)
             await asyncio.sleep(1)
     else:
-        await app.send_message(USER_ID, "**Links Not Found!!**")
-
+        message = "**Links Not Found!!**" if link_type == "magnet" else "**No suitable links found!**"
+        await app.send_message(USER_ID, message)
 
 @app.on_message(filters.command("tmv"))
 async def tmv(client, message):
-    """
-    Handle the /tmv command to scrape links and send a specified number of them.
-    Usage:
-    - /tmv <url>         -> Sends all links.
-    - /tmv -i <number> <url> -> Sends the first <number> links.
-    """
+    """Handle the /tmv command for scraping and sending links."""
     try:
         parts = message.text.split()
-        
         if len(parts) < 2:
             await message.reply_text("**Usage:** /tmv <url> or /tmv -i <number> <url>")
             return
@@ -115,64 +80,65 @@ async def tmv(client, message):
         url = None
 
         if "-i" in parts:
-            # Extract index and URL
             try:
                 index_flag = parts.index("-i")
-                num_links = int(parts[index_flag + 1])  # Validate number of links
-                url = parts[index_flag + 2]  # Extract URL
+                num_links = int(parts[index_flag + 1])
+                url = parts[index_flag + 2]
             except (ValueError, IndexError):
                 await message.reply_text("**Usage:** /tmv -i <number> <url>\nThe number of links must be an integer.")
                 return
         else:
-            # URL without `-i`
             url = parts[-1]
 
         if not url.startswith("http"):
-            await message.reply_text("**🙏🏻 Invalid URL. Please provide a valid URL.**")
+            await message.reply_text("**Invalid URL provided!**")
             return
 
-        # Scrape links from the provided URL
-        links = await scrape_website(url)
-        if not links:
-            await message.reply_text("**💀 No links found on the provided URL.**")
-            return
-
-        # Send specific number of links or all
-        if num_links:
-            links_to_send = links[:num_links]
-            await message.reply_text(f"**Sending the first {num_links} links:**")
+        magnet_links, file_links = scrape_website(url)
+        if magnet_links:
+            links_to_send = magnet_links[:num_links] if num_links else magnet_links
+            await message.reply_text(f"**Sending {len(links_to_send)} magnet links:**")
+            await send_links_or_message(links_to_send, link_type="magnet")
+        elif file_links:
+            links_to_send = file_links[:num_links] if num_links else file_links
+            await message.reply_text(f"**No magnet links found. Sending {len(links_to_send)} file links instead:**")
+            await send_links_or_message(links_to_send, link_type="file")
         else:
-            links_to_send = links
-            await message.reply_text(f"**Sending all {len(links)} links:**")
-
-        await send_links_or_message(links_to_send)
+            await message.reply_text("**No links of either type were found on the page.**")
 
     except Exception as e:
-        logging.error(f"Error handling /tmv command: {str(e)}")
         await message.reply_text(f"**Error:** {str(e)}")
 
-
-async def check_rss_feed():
-    """Periodically check the RSS feed for new links and send them."""
+async def process_rss_feed():
+    """Fetch and process new entries from the RSS feed."""
+    global sent_links
     while True:
         try:
-            new_links = await fetch_rss_links()
-            if new_links:
-                await send_links_or_message(new_links)
+            feed = feedparser.parse(RSS_FEED_URL)
+            for entry in feed.entries:
+                if entry.link not in sent_links:
+                    magnet_links, file_links = scrape_website(entry.link)
+                    if magnet_links:
+                        await send_links_or_message(magnet_links, link_type="magnet")
+                    elif file_links:
+                        await send_links_or_message(file_links, link_type="file")
+                    else:
+                        await app.send_message(USER_ID, f"No links found in the RSS entry: {entry.link}")
+                    save_sent_link(entry.link)
         except Exception as e:
-            logging.error(f"Error during RSS feed check: {str(e)}")
-        await asyncio.sleep(600)  # Check every 10 minutes
-
+            print(f"Error processing RSS feed: {str(e)}")
+        await asyncio.sleep(300)  # Wait for 5 minutes before checking again
 
 async def main():
+    """Start the bot and process RSS feed."""
     await app.start()
-    logging.info("Bot is running...")
-    # Start RSS feed monitoring in the background
-    asyncio.create_task(check_rss_feed())
+    print("Bot is running...")
+    asyncio.create_task(process_rss_feed())  # Start RSS feed processing
     await idle()
     await app.stop()
 
+# Apply nest_asyncio to avoid event loop issues
+nest_asyncio.apply()
 
 # Run the bot
-if __name__ == "__main__":
-    asyncio.run(main())
+asyncio.run(main())
