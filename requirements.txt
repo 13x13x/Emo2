@@ -2,6 +2,7 @@ feedparser
 pyrogram
 beautifulsoup4
 requests
+aiohttp
 TgCrypto
 nest_asyncio
 nest-asyncio
