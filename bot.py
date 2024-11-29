@@ -6,7 +6,7 @@ from pyrogram import Client, filters, idle
 from bs4 import BeautifulSoup
 from pymongo import MongoClient
 from datetime import datetime
-from Config import BOT_TOKEN, API_HASH, API_ID, MONGO_URL, USER_ID, RSS_FEED_URL
+from Config import Config  # Import Config class for configurations
 
 # Set up logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
@@ -52,7 +52,7 @@ async def send_links_or_message(links, link_type="magnet"):
     """Send links or notify if none are found."""
     if links:
         for i, link in enumerate(links[:Config.MAX_LINKS_PER_BATCH]):
-            formatted_link = f"/qbleech {link} **\n**Tag: @Arisu_0007 6290483448"
+            formatted_link = f"/qbleech {link} **\n**Tag: @Arisu_0007 {Config.USER_ID}"
             
             # Avoid duplicates
             if is_link_sent(formatted_link):
