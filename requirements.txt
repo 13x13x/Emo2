@@ -6,5 +6,4 @@ aiohttp
 TgCrypto
 nest_asyncio
 pymongo
-python-dotenv
 
