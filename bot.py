@@ -115,7 +115,7 @@ async def tmv(client, message):
         magnet_links, file_links = scrape_website(url)
         if magnet_links:
             links_to_send = magnet_links[:num_links] if num_links else magnet_links
-            await message.reply_text(f"**Sending {len(links_to_send)}**")
+            await message.reply_text(f"**Sending {len(links_to_send)} Magnet Links..**")
             await send_links_or_message(links_to_send, link_type="magnet")
         elif file_links:
             links_to_send = file_links[:num_links] if num_links else file_links
