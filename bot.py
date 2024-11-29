@@ -32,7 +32,6 @@ def mark_link_as_sent(link):
 def scrape_website(url):
     """Scrape the given URL for magnet and file links."""
     try:
-        logger.info(f"Scraping URL: {url}")
         response = requests.get(url, timeout=10)
         response.raise_for_status()
         soup = BeautifulSoup(response.content, 'html.parser')
@@ -40,14 +39,13 @@ def scrape_website(url):
         file_links = [a['href'] for a in soup.find_all('a', href=True) if "applications" in a['href']]
         return magnet_links, file_links
     except Exception as e:
-        logger.error(f"Error scraping {url}: {e}")
         return [], []
 
 async def send_links_or_message(links, link_type="magnet"):
     """Send links or notify if none are found."""
     if links:
         for i, link in enumerate(links[:Config.MAX_LINKS_PER_BATCH]):
-            formatted_link = f"/qbleech {link} **\n**Tag: @Arisu_0007 {Config.USER_ID}"
+            formatted_link = f"/qbleech {link} **\n**Tag: {Config.USER_ID}"
             
             # Avoid duplicates
             if is_link_sent(formatted_link):
@@ -57,19 +55,19 @@ async def send_links_or_message(links, link_type="magnet"):
             mark_link_as_sent(formatted_link)
             await asyncio.sleep(1)
     else:
-        message = "Links Not Found!!" if link_type == "magnet" else "No suitable links found!"
+        message = "**Links Not Found!!**" if link_type == "magnet" else "**No suitable links found!**"
         await app.send_message(Config.USER_ID, message)
 
 @app.on_message(filters.command("tmv"))
 async def tmv_handler(client, message):
     """Handle /tmv command."""
     if message.from_user.id != Config.USER_ID:
-        await message.reply_text("❌ You are not authorized to use this command!")
+        await message.reply_text("**❌ You are not authorized to use this command!**")
         return
 
     parts = message.text.split()
     if len(parts) < 2:
-        await message.reply_text("Usage: /tmv <url> or /tmv -i <number> <url>")
+        await message.reply_text("**Usage: /tmv <url> or /tmv -i <number> <url>**")
         return
 
     num_links = None
@@ -81,13 +79,13 @@ async def tmv_handler(client, message):
             num_links = int(parts[index_flag + 1])
             url = parts[index_flag + 2]
         except (ValueError, IndexError):
-            await message.reply_text("Usage: /tmv -i <number> <url>")
+            await message.reply_text("**Usage: /tmv -i <number> <url>**")
             return
     else:
         url = parts[-1]
 
     if not url.startswith("http"):
-        await message.reply_text("Invalid URL provided!")
+        await message.reply_text("**Invalid URL provided!**")
         return
 
     magnet_links, file_links = scrape_website(url)
@@ -98,13 +96,12 @@ async def tmv_handler(client, message):
         links_to_send = file_links[:num_links] if num_links else file_links
         await send_links_or_message(links_to_send, link_type="file")
     else:
-        await message.reply_text("No links of either type were found on the page.")
+        await message.reply_text("**No links of either type were found on the page.**")
 
 async def process_rss_feed():
     """Fetch and process new RSS feed entries."""
     while True:
         try:
-            logger.info("Checking RSS feed for new entries...")
             feed = feedparser.parse(Config.RSS_FEED_URL)
             for entry in feed.entries:
                 if not is_link_sent(entry.link):
@@ -114,16 +111,16 @@ async def process_rss_feed():
                     elif file_links:
                         await send_links_or_message(file_links, link_type="file")
                     else:
-                        await app.send_message(Config.USER_ID, f"No links found in RSS entry: {entry.link}")
+                        await app.send_message(Config.USER_ID, f"**No links found in RSS entry: {entry.link}**")
                     mark_link_as_sent(entry.link)
         except Exception as e:
-            logger.error(f"Error processing RSS feed: {e}")
+            pass  # We simply ignore any errors during RSS processing
         await asyncio.sleep(300)
 
 async def main():
     """Start the bot and RSS feed processor."""
     await app.start()
-    logger.info("Bot is running...")
+    print("**Bot is running...**")  # Print message when bot starts
     asyncio.create_task(process_rss_feed())
     await idle()
     await app.stop()
