@@ -1,40 +1,27 @@
-import os
-import feedparser
+import asyncio
+import logging
 import requests
+import feedparser
 from pyrogram import Client, filters, idle
 from bs4 import BeautifulSoup
-import asyncio
-from datetime import datetime
 from pymongo import MongoClient
-from dotenv import load_dotenv
-import logging
-
-# Load environment variables
-load_dotenv()
+from datetime import datetime
+from config import Config  # Importing configurations from config.py
 
 # Set up logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
-# Configuration
-api_id = int(os.getenv("API_ID"))
-api_hash = os.getenv("API_HASH")
-bot_token = os.getenv("BOT_TOKEN")
-mongo_url = os.getenv("MONGO_URL")
-user_id = int(os.getenv("USER_ID"))
-rss_feed_url = os.getenv("RSS_FEED_URL")
-max_links_per_batch = int(os.getenv("MAX_LINKS_PER_BATCH", 20))
-
 # Initialize Pyrogram client
 app = Client(
     "web_scraper_bot",
-    api_id=api_id,
-    api_hash=api_hash,
-    bot_token=bot_token
+    api_id=Config.API_ID,
+    api_hash=Config.API_HASH,
+    bot_token=Config.BOT_TOKEN
 )
 
 # Initialize MongoDB
-mongo_client = MongoClient(mongo_url)
+mongo_client = MongoClient(Config.MONGO_URL)
 db = mongo_client["web_scraper_bot"]
 sent_links_collection = db["sent_links"]
 
@@ -64,24 +51,24 @@ def scrape_website(url):
 async def send_links_or_message(links, link_type="magnet"):
     """Send links or notify if none are found."""
     if links:
-        for i, link in enumerate(links[:max_links_per_batch]):
+        for i, link in enumerate(links[:Config.MAX_LINKS_PER_BATCH]):
             formatted_link = f"/qbleech {link} **\n**Tag: @Arisu_0007 6290483448"
             
             # Avoid duplicates
             if is_link_sent(formatted_link):
                 formatted_link = f"{link} \n\n** #rss**"
             
-            await app.send_message(user_id, formatted_link)
+            await app.send_message(Config.USER_ID, formatted_link)
             mark_link_as_sent(formatted_link)
             await asyncio.sleep(1)
     else:
         message = "Links Not Found!!" if link_type == "magnet" else "No suitable links found!"
-        await app.send_message(user_id, message)
+        await app.send_message(Config.USER_ID, message)
 
 @app.on_message(filters.command("tmv"))
 async def tmv_handler(client, message):
     """Handle /tmv command."""
-    if message.from_user.id != user_id:
+    if message.from_user.id != Config.USER_ID:
         await message.reply_text("❌ You are not authorized to use this command!")
         return
 
@@ -123,7 +110,7 @@ async def process_rss_feed():
     while True:
         try:
             logger.info("Checking RSS feed for new entries...")
-            feed = feedparser.parse(rss_feed_url)
+            feed = feedparser.parse(Config.RSS_FEED_URL)
             for entry in feed.entries:
                 if not is_link_sent(entry.link):
                     magnet_links, file_links = scrape_website(entry.link)
@@ -132,7 +119,7 @@ async def process_rss_feed():
                     elif file_links:
                         await send_links_or_message(file_links, link_type="file")
                     else:
-                        await app.send_message(user_id, f"No links found in RSS entry: {entry.link}")
+                        await app.send_message(Config.USER_ID, f"No links found in RSS entry: {entry.link}")
                     mark_link_as_sent(entry.link)
         except Exception as e:
             logger.error(f"Error processing RSS feed: {e}")
