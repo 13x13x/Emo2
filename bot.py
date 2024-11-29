@@ -1,5 +1,4 @@
 import asyncio
-import logging
 import requests
 import feedparser
 from pyrogram import Client, filters, idle
@@ -7,10 +6,6 @@ from bs4 import BeautifulSoup
 from pymongo import MongoClient
 from datetime import datetime
 from Config import Config  # Import Config class for configurations
-
-# Set up logging
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
-logger = logging.getLogger(__name__)
 
 # Initialize Pyrogram client
 app = Client(
