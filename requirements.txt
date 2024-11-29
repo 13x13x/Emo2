@@ -5,5 +5,5 @@ requests
 aiohttp
 TgCrypto
 nest_asyncio
-pymongo
+pymongo[srv]
 
