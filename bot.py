@@ -15,8 +15,8 @@ api_hash = '188f227d40cdbfaa724f1f3cd059fd8b'
 bot_token = '6588497175:AAGTAjaV96SJMm8KyJ3HHioZJqRw51CRNqg'
 
 USER_ID = 6290483448  # Replace with the actual user ID
-RSS_FEED_URL = ''  # Add your RSS feed URL
-MAX_LINKS_PER_BATCH = 20
+RSS_FEED_URL = 'https://www.1tamilmv.bz/index.php?/discover/all.xml'  # Add your RSS feed URL
+MAX_LINKS_PER_BATCH = 10
 session_name = f"web_scraper_bot_{api_id}_{uuid.uuid4()}"
 os.makedirs("./sessions", exist_ok=True)
 
@@ -73,7 +73,8 @@ async def send_links_or_message(links, link_type="magnet"):
             if is_link_sent(formatted_link):
                 formatted_link = f"**{link} **\n\n** #rss**"
             
-            await app.send_message(USER_ID, f"**{link_type.capitalize()} Link {i+1}:** {formatted_link}")
+            # Send only the formatted link without "Magnet Link 1:"
+            await app.send_message(USER_ID, formatted_link)
             mark_link_as_sent(formatted_link)  # Save the link in MongoDB
             await asyncio.sleep(1)
     else:
@@ -119,7 +120,7 @@ async def tmv(client, message):
             await send_links_or_message(links_to_send, link_type="magnet")
         elif file_links:
             links_to_send = file_links[:num_links] if num_links else file_links
-            await message.reply_text(f"**No magnet links found Sending {len(links_to_send)}**")
+            await message.reply_text(f"**No magnet links found, sending {len(links_to_send)} file links**")
             await send_links_or_message(links_to_send, link_type="file")
         else:
             await message.reply_text("**❌ No links of either type were found on the page**")
