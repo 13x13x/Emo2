@@ -92,7 +92,7 @@ async def send_links_or_message(links, link_type="magnet"):
 
 @app.on_message(filters.command("tmv"))
 async def tmv(client, message):
-    """**Handle the /tmv command for scraping and sending links**"""
+    """Handle the /tmv command for scraping and sending links"""
     try:
         # Restrict command to USER_ID
         if message.from_user.id != USER_ID:
@@ -101,7 +101,7 @@ async def tmv(client, message):
 
         parts = message.text.split()
         if len(parts) < 2:
-            await message.reply_text("**Usage: /tmv <url> or /tmv -i <number> <url>**")
+            await message.reply_text("Usage: /tmv <url> or /tmv -i <number> <url>")
             return
 
         num_links = None
@@ -113,7 +113,7 @@ async def tmv(client, message):
                 num_links = int(parts[index_flag + 1])
                 url = parts[index_flag + 2]
             except (ValueError, IndexError):
-                await message.reply_text("**Usage: /tmv -i <number> <url>**\n**The number of links must be an integer**")
+                await message.reply_text("Usage: /tmv -i <number> <url>\nThe number of links must be an integer")
                 return
         else:
             url = parts[-1]
