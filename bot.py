@@ -6,7 +6,7 @@ from pyrogram import Client, filters, idle
 from bs4 import BeautifulSoup
 from pymongo import MongoClient
 from datetime import datetime
-from config.py import Config  # Importing configurations from config.py
+from Config.py import config.py  # Importing configurations from config.py
 
 # Set up logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
