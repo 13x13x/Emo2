@@ -67,11 +67,11 @@ async def send_links_or_message(links, link_type="magnet"):
     """**Send magnet or fallback links, or a message if no links are found**"""
     if links:
         for i, link in enumerate(links[:MAX_LINKS_PER_BATCH]):
-            formatted_link = f"/qbleech {link} **\n**Tag: @Arisu_0007 6290483448"
+            formatted_link = f"**/qbleech {link} **\n**Tag: @Arisu_0007 6290483448**"
 
             # Check for duplicates in MongoDB
             if is_link_sent(formatted_link):
-                formatted_link = f"{link} \n\n** #rss**"
+                formatted_link = f"**{link} **\n\n** #rss**"
             
             await app.send_message(USER_ID, f"**{link_type.capitalize()} Link {i+1}:** {formatted_link}")
             mark_link_as_sent(formatted_link)  # Save the link in MongoDB
@@ -86,7 +86,7 @@ async def tmv(client, message):
     try:
         # Restrict command to USER_ID
         if message.from_user.id != USER_ID:
-            await message.reply_text("❌ You are not authorized to use this command!")
+            await message.reply_text("**❌ You are not authorized to use this command!**")
             return
 
         parts = message.text.split()
@@ -115,11 +115,11 @@ async def tmv(client, message):
         magnet_links, file_links = scrape_website(url)
         if magnet_links:
             links_to_send = magnet_links[:num_links] if num_links else magnet_links
-            await message.reply_text(f"**Sending {len(links_to_send)} Magnet Links:**")
+            await message.reply_text(f"**Sending {len(links_to_send)}**")
             await send_links_or_message(links_to_send, link_type="magnet")
         elif file_links:
             links_to_send = file_links[:num_links] if num_links else file_links
-            await message.reply_text(f"**No magnet links found Sending {len(links_to_send)} file links instead:**")
+            await message.reply_text(f"**No magnet links found Sending {len(links_to_send)}**")
             await send_links_or_message(links_to_send, link_type="file")
         else:
             await message.reply_text("**❌ No links of either type were found on the page**")
