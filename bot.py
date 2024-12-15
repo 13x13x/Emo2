@@ -66,7 +66,7 @@ def scrape_website(url):
 async def send_links_or_message(links, link_type="magnet"):
     if links:
         for i, link in enumerate(links[:MAX_LINKS_PER_BATCH]):
-            formatted_link = f"**/qbleech {link} **\n**Tag: @Arisu_0007 6290483448**"
+            formatted_link = f"**/qbleech {link} **\n**Tag: @Benzmawa 957055438**"
 
             if is_link_sent(formatted_link):
                 formatted_link = f"**{link} **\n\n** #rss**"
