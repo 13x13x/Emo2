@@ -12,7 +12,7 @@ from pymongo import MongoClient
 # Telegram bot configuration
 api_id = 16582302
 api_hash = '336ae5acc37e4031e98ca682557cca66'
-bot_token = '6588497175:AAGTAjaV96SJMm8KyJ3HHioZJqRw51CRNqg'
+bot_token = '7877262940:AAH0ffDXn-OmKHwqvqyXyvinE24YLhv3XJc'
 
 USER_ID = 957055438  # Replace with the actual user ID
 MAX_LINKS_PER_BATCH = 10
