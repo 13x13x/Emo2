@@ -12,7 +12,7 @@ from pymongo import MongoClient
 # Telegram bot configuration
 api_id = 16582302
 api_hash = '336ae5acc37e4031e98ca682557cca66'
-bot_token = '7877262940:AAH0ffDXn-OmKHwqvqyXyvinE24YLhv3XJc'
+bot_token = '7258880326:AAEQHapuXMeJmAg_4qiPey1oePt-UpA2F6I'
 
 USER_ID = 957055438  # Replace with the actual user ID
 MAX_LINKS_PER_BATCH = 10
@@ -66,7 +66,7 @@ def scrape_website(url):
 async def send_links_or_message(links, link_type="magnet"):
     if links:
         for i, link in enumerate(links[:MAX_LINKS_PER_BATCH]):
-            formatted_link = f"**/qbleech2 {link} **\n**Tag: @Arisu_0007 6290483448**"
+            formatted_link = f"**/qbleech {link} **\n**Tag: @Arisu_0007 6290483448**"
 
             if is_link_sent(formatted_link):
                 formatted_link = f"**{link} **\n\n** #rss**"
