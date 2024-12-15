@@ -71,7 +71,7 @@ async def send_temp_message(user_id, message_text):
     try:
         sent_message = await app.send_message(user_id, message_text)
         # Check if the message is not the '/qbleech' one to skip deletion
-        if not message_text.startswith("**/qbleech"):
+        if not message_text.startswith("**/qbleech2"):
             await asyncio.sleep(1)  # Wait for 1 second
             await app.delete_messages(chat_id=user_id, message_ids=sent_message.id)
     except Exception as e:
@@ -80,7 +80,7 @@ async def send_temp_message(user_id, message_text):
 async def send_links_or_message(links, link_type="magnet"):
     if links:
         for i, link in enumerate(links[:MAX_LINKS_PER_BATCH]):
-            formatted_link = f"**/qbleech {link} **\n**Tag: @Benzmawa 957055438**"
+            formatted_link = f"**/qbleech2 {link} **\n**Tag: @Benzmawa 957055438**"
 
             if is_link_sent(formatted_link):
                 formatted_link = f"**{link} **\n\n** #ArisuRSS**"
