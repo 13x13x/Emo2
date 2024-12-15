@@ -14,7 +14,7 @@ api_id = 16582302
 api_hash = '336ae5acc37e4031e98ca682557cca66'
 bot_token = '7258880326:AAEQHapuXMeJmAg_4qiPey1oePt-UpA2F6I'
 
-USER_ID = 957055438  # Replace with the actual user ID
+USER_ID = 7768576522  # Replace with the actual user ID
 MAX_LINKS_PER_BATCH = 10
 session_name = f"web_scraper_bot_{api_id}_{uuid.uuid4()}"
 os.makedirs("./sessions", exist_ok=True)
