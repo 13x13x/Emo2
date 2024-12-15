@@ -29,8 +29,8 @@ app = Client(
 
 # MongoDB Configuration
 MONGO_URL = "mongodb+srv://Puka12:puka12@cluster0.4xmyiyc.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
-DATABASE_NAME = "web_scraper_bot2"
-COLLECTION_NAME = "sent_links2"
+DATABASE_NAME = "web_scraper_bot3"
+COLLECTION_NAME = "sent_links3"
 
 # Initialize MongoDB client
 mongo_client = MongoClient(MONGO_URL)
