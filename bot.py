@@ -10,12 +10,12 @@ from datetime import datetime
 from pymongo import MongoClient
 
 # Telegram bot configuration
-api_id = 16582302
-api_hash = '336ae5acc37e4031e98ca682557cca66'
+api_id = 24972774
+api_hash = '188f227d40cdbfaa724f1f3cd059fd8b'
 bot_token = '6588497175:AAGTAjaV96SJMm8KyJ3HHioZJqRw51CRNqg'
 
-USER_ID = 7768576522  # Replace with the actual user ID
-MAX_LINKS_PER_BATCH = 10
+USER_ID = 957055438  # Replace with the actual user ID
+MAX_LINKS_PER_BATCH = 20
 session_name = f"web_scraper_bot_{api_id}_{uuid.uuid4()}"
 os.makedirs("./sessions", exist_ok=True)
 
@@ -29,8 +29,8 @@ app = Client(
 
 # MongoDB Configuration
 MONGO_URL = "mongodb+srv://Puka12:puka12@cluster0.4xmyiyc.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
-DATABASE_NAME = "web_scraper_b"
-COLLECTION_NAME = "sent_lik"
+DATABASE_NAME = "web_scraper_bott"
+COLLECTION_NAME = "sent_linkss"
 
 # Initialize MongoDB client
 mongo_client = MongoClient(MONGO_URL)
@@ -66,7 +66,7 @@ def scrape_website(url):
 async def send_links_or_message(links, link_type="magnet"):
     if links:
         for i, link in enumerate(links[:MAX_LINKS_PER_BATCH]):
-            formatted_link = f"**/qbleech {link} **\n**Tag: @Arisu_0007 6290483448**"
+            formatted_link = f"**/qbleech {link} **\n**Tag: @ROHITH3RD 957055438**"
 
             if is_link_sent(formatted_link):
                 formatted_link = f"**{link} **\n\n** #rss**"
