@@ -63,6 +63,20 @@ def scrape_website(url):
         print(f"Error scraping website: {str(e)}")
         return [], []
 
+# Function to send a message and auto-delete it after 1 second (except for the formatted_link with '/qbleech')
+async def send_temp_message(user_id, message_text):
+    """
+    Sends a temporary message to the user and deletes it after 1 second, except the '/qbleech' message.
+    """
+    try:
+        sent_message = await app.send_message(user_id, message_text)
+        # Check if the message is not the '/qbleech' one to skip deletion
+        if not message_text.startswith("**/qbleech"):
+            await asyncio.sleep(1)  # Wait for 1 second
+            await app.delete_messages(chat_id=user_id, message_ids=sent_message.id)
+    except Exception as e:
+        print(f"Error in auto-deleting message: {str(e)}")
+
 async def send_links_or_message(links, link_type="magnet"):
     if links:
         for i, link in enumerate(links[:MAX_LINKS_PER_BATCH]):
@@ -70,8 +84,8 @@ async def send_links_or_message(links, link_type="magnet"):
 
             if is_link_sent(formatted_link):
                 formatted_link = f"**{link} **\n\n** #ArisuRSS**"
-
-            await app.send_message(USER_ID, formatted_link)
+            
+            await send_temp_message(USER_ID, formatted_link)
             mark_link_as_sent(formatted_link)
             await asyncio.sleep(1)
     else:
