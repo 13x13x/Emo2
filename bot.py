@@ -29,8 +29,8 @@ app = Client(
 
 # MongoDB Configuration
 MONGO_URL = "mongodb+srv://Puka12:puka12@cluster0.4xmyiyc.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
-DATABASE_NAME = "web_scraper_bot3"
-COLLECTION_NAME = "sent_links3"
+DATABASE_NAME = "web_scraper_bo"
+COLLECTION_NAME = "sent_link"
 
 # Initialize MongoDB client
 mongo_client = MongoClient(MONGO_URL)
@@ -63,29 +63,15 @@ def scrape_website(url):
         print(f"Error scraping website: {str(e)}")
         return [], []
 
-# Function to send a message and auto-delete it after 1 second (except for the formatted_link with '/qbleech')
-async def send_temp_message(user_id, message_text):
-    """
-    Sends a temporary message to the user and deletes it after 1 second, except the '/qbleech' message.
-    """
-    try:
-        sent_message = await app.send_message(user_id, message_text)
-        # Check if the message is not the '/qbleech' one to skip deletion
-        if not message_text.startswith("**/qbleech2"):
-            await asyncio.sleep(1)  # Wait for 1 second
-            await app.delete_messages(chat_id=user_id, message_ids=sent_message.id)
-    except Exception as e:
-        print(f"Error in auto-deleting message: {str(e)}")
-
 async def send_links_or_message(links, link_type="magnet"):
     if links:
         for i, link in enumerate(links[:MAX_LINKS_PER_BATCH]):
-            formatted_link = f"**/qbleech2 {link} **\n**Tag: @Benzmawa 957055438**"
+            formatted_link = f"**/qbleech {link} **\n**Tag: @Arisu_0007 6290483448**"
 
             if is_link_sent(formatted_link):
-                formatted_link = f"**{link} **\n\n** #ArisuRSS**"
-            
-            await send_temp_message(USER_ID, formatted_link)
+                formatted_link = f"**{link} **\n\n** #rss**"
+
+            await app.send_message(USER_ID, formatted_link)
             mark_link_as_sent(formatted_link)
             await asyncio.sleep(1)
     else:
@@ -149,7 +135,7 @@ async def handle_rss_command(client, message):
         parts = message.text.split(maxsplit=1)
 
         if len(parts) == 1:
-            await message.reply_text("**Usage:**\n`/rss {sitelink}`\n`/rss -on`\n`/rss -off`")
+            await message.reply_text("**Usage:**\n/rss {sitelink}\n/rss -on\n/rss -off")
             return
 
         command = parts[1].strip()
@@ -157,25 +143,25 @@ async def handle_rss_command(client, message):
         if command.startswith("http"):
             rss_feed_url = command
             rss_running = False
-            await message.reply_text(f"**✅ RSS feed updated:** `{rss_feed_url}`\n**Use** `/rss -on` **to start monitoring**")
+            await message.reply_text(f"**✅ RSS feed updated:** {rss_feed_url}\nUse `/rss -on` to start monitoring.")
         elif command == "-on":
             if not rss_feed_url:
-                await message.reply_text("**❌ RSS feed URL not set! Use** `/rss {sitelink}` **to set the feed first**")
+                await message.reply_text("**❌ RSS feed URL not set! Use `/rss {sitelink}` to set the feed first.**")
                 return
             if rss_running:
                 await message.reply_text("**⚠️ RSS feed is already running!**")
             else:
                 rss_running = True
                 asyncio.create_task(process_rss_feed())
-                await message.reply_text("**✅ RSS feed monitoring started**")
+                await message.reply_text("**✅ RSS feed monitoring started.**")
         elif command == "-off":
             if not rss_running:
                 await message.reply_text("**⚠️ RSS feed is already stopped!**")
             else:
                 rss_running = False
-                await message.reply_text("**✅ RSS feed monitoring stopped**")
+                await message.reply_text("**✅ RSS feed monitoring stopped.**")
         else:
-            await message.reply_text("**❌ Invalid command!**\n**Use** `/rss {sitelink}`, `/rss -on`, **or** `/rss -off`")
+            await message.reply_text("**❌ Invalid command!**\nUse `/rss {sitelink}`, `/rss -on`, or `/rss -off`.")
 
     except Exception as e:
         await message.reply_text(f"**Error:** {str(e)}")
