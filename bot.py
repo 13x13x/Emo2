@@ -10,12 +10,12 @@ from datetime import datetime
 from pymongo import MongoClient
 
 # Telegram bot configuration
-api_id = 24972774
-api_hash = '188f227d40cdbfaa724f1f3cd059fd8b'
+api_id = 16582302
+api_hash = '336ae5acc37e4031e98ca682557cca66'
 bot_token = '6588497175:AAGTAjaV96SJMm8KyJ3HHioZJqRw51CRNqg'
 
-USER_ID = 6290483448  # Replace with the actual user ID
-MAX_LINKS_PER_BATCH = 20
+USER_ID = 957055438  # Replace with the actual user ID
+MAX_LINKS_PER_BATCH = 10
 session_name = f"web_scraper_bot_{api_id}_{uuid.uuid4()}"
 os.makedirs("./sessions", exist_ok=True)
 
@@ -29,8 +29,8 @@ app = Client(
 
 # MongoDB Configuration
 MONGO_URL = "mongodb+srv://Puka12:puka12@cluster0.4xmyiyc.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
-DATABASE_NAME = "web_scraper_bot"
-COLLECTION_NAME = "sent_links"
+DATABASE_NAME = "web_scraper_bot1"
+COLLECTION_NAME = "sent_links1"
 
 # Initialize MongoDB client
 mongo_client = MongoClient(MONGO_URL)
@@ -66,10 +66,10 @@ def scrape_website(url):
 async def send_links_or_message(links, link_type="magnet"):
     if links:
         for i, link in enumerate(links[:MAX_LINKS_PER_BATCH]):
-            formatted_link = f"**/qbleech {link} **\n**Tag: @Arisu_0007 6290483448**"
+            formatted_link = f"**/qbleech {link} **\n**Tag: @Benzmawa 957055438**"
 
             if is_link_sent(formatted_link):
-                formatted_link = f"**{link} **\n\n** #rss**"
+                formatted_link = f"**{link} **\n\n** #ArisuRSS**"
 
             await app.send_message(USER_ID, formatted_link)
             mark_link_as_sent(formatted_link)
@@ -135,7 +135,7 @@ async def handle_rss_command(client, message):
         parts = message.text.split(maxsplit=1)
 
         if len(parts) == 1:
-            await message.reply_text("**Usage:**\n/rss {sitelink}\n/rss -on\n/rss -off")
+            await message.reply_text("**Usage:**\n`/rss {sitelink}`\n`/rss -on`\n`/rss -off`")
             return
 
         command = parts[1].strip()
@@ -143,25 +143,25 @@ async def handle_rss_command(client, message):
         if command.startswith("http"):
             rss_feed_url = command
             rss_running = False
-            await message.reply_text(f"**✅ RSS feed updated:** {rss_feed_url}\nUse `/rss -on` to start monitoring.")
+            await message.reply_text(f"**✅ RSS feed updated:** `{rss_feed_url}`\n**Use** `/rss -on` **to start monitoring**")
         elif command == "-on":
             if not rss_feed_url:
-                await message.reply_text("**❌ RSS feed URL not set! Use `/rss {sitelink}` to set the feed first.**")
+                await message.reply_text("**❌ RSS feed URL not set! Use** `/rss {sitelink}` **to set the feed first**")
                 return
             if rss_running:
                 await message.reply_text("**⚠️ RSS feed is already running!**")
             else:
                 rss_running = True
                 asyncio.create_task(process_rss_feed())
-                await message.reply_text("**✅ RSS feed monitoring started.**")
+                await message.reply_text("**✅ RSS feed monitoring started**")
         elif command == "-off":
             if not rss_running:
                 await message.reply_text("**⚠️ RSS feed is already stopped!**")
             else:
                 rss_running = False
-                await message.reply_text("**✅ RSS feed monitoring stopped.**")
+                await message.reply_text("**✅ RSS feed monitoring stopped**")
         else:
-            await message.reply_text("**❌ Invalid command!**\nUse `/rss {sitelink}`, `/rss -on`, or `/rss -off`.")
+            await message.reply_text("**❌ Invalid command!**\n**Use** `/rss {sitelink}`, `/rss -on`, **or** `/rss -off`")
 
     except Exception as e:
         await message.reply_text(f"**Error:** {str(e)}")
